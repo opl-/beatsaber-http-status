@@ -1,0 +1,11 @@
+# Build
+BeatSaberHTTPStatus/head
+
+# Libs
+libs/beatsaber/*
+
+# C#
+bin
+obj
+
+.vs/
