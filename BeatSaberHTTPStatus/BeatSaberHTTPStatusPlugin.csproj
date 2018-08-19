@@ -74,21 +74,24 @@
     <Compile Include="**\*.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="BeforeBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <RemoveDir Directories="$(OutDir)" />
+  </Target>
   <Target Name="AfterBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <ItemGroup>
       <ZipFiles Include="$(OutDir)\BeatSaberHTTPStatus.dll" />
       <ZipFiles Include="$(OutDir)\websocket-sharp.dll" />
     </ItemGroup>
-    <Exec Command="git rev-parse HEAD > head" />
-    <ReadLinesFromFile File="head">
+    <Exec Command="git rev-parse HEAD > $(IntermediateOutputPath)head" />
+    <ReadLinesFromFile File="$(IntermediateOutputPath)head">
         <Output TaskParameter="Lines" PropertyName="FullCommitHash" /> 
     </ReadLinesFromFile>
-    <Delete Files="head" />
+    <Delete Files="$(IntermediateOutputPath)head" />
     <PropertyGroup>
       <CommitHash>$(FullCommitHash.Substring(0, 8))</CommitHash>
     </PropertyGroup>
-    <Copy SourceFiles="@(ZipFiles)" DestinationFolder="$(OutDir)\zip\Plugins" />
-    <ZipDir ZipFileName="$(OutDir)\BeatSaberHTTPStatus-$(Version)-$(CommitHash).zip" DirectoryName="$(OutDir)\zip" />
+    <Copy SourceFiles="@(ZipFiles)" DestinationFolder="$(IntermediateOutputPath)\zip\Plugins" />
+    <ZipDir ZipFileName="$(OutDir)\BeatSaberHTTPStatus-$(Version)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
   </Target>
   <!-- Source: https://stackoverflow.com/a/38127938 -->
   <UsingTask TaskName="ZipDir" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
