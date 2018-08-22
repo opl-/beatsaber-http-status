@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <Version>1.0.0</Version>
+    <BeatSaberVersion>0.11.1</BeatSaberVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -82,7 +83,7 @@
       <ZipFiles Include="$(OutDir)\BeatSaberHTTPStatus.dll" />
       <ZipFiles Include="$(OutDir)\websocket-sharp.dll" />
     </ItemGroup>
-    <Exec Command="git rev-parse HEAD > $(IntermediateOutputPath)head" />
+    <Exec Command="git rev-parse HEAD &gt; $(IntermediateOutputPath)head" />
     <ReadLinesFromFile File="$(IntermediateOutputPath)head">
         <Output TaskParameter="Lines" PropertyName="FullCommitHash" /> 
     </ReadLinesFromFile>
@@ -91,7 +92,7 @@
       <CommitHash>$(FullCommitHash.Substring(0, 8))</CommitHash>
     </PropertyGroup>
     <Copy SourceFiles="@(ZipFiles)" DestinationFolder="$(IntermediateOutputPath)\zip\Plugins" />
-    <ZipDir ZipFileName="$(OutDir)\BeatSaberHTTPStatus-$(Version)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
+    <ZipDir ZipFileName="$(OutDir)\BeatSaberHTTPStatus-$(Version)-bs$(BeatSaberVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
   </Target>
   <!-- Source: https://stackoverflow.com/a/38127938 -->
   <UsingTask TaskName="ZipDir" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
