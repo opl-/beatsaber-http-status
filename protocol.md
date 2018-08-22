@@ -20,8 +20,8 @@ Use this path to connect to the WebSocket. The WebSocket will send the [hello ev
 
 ### Event object
 
-```json
-{
+```js
+EventObject = {
 	"event": String, // See [Events](#events)
 	"status": Object, // See [Status object](#status-object). May be partial, depending on the event type.
 }
@@ -29,8 +29,8 @@ Use this path to connect to the WebSocket. The WebSocket will send the [hello ev
 
 ### Status object
 
-```json
-{
+```js
+StatusObject = {
 	"game": {
 		"scene": String, // See [Scenes](#scene-string)
 		"mode": null | "SoloStandard" | "SoloOneSaber" | "SoloNoArrows" | "PartyStandard",
@@ -74,8 +74,8 @@ Use this path to connect to the WebSocket. The WebSocket will send the [hello ev
 
 ### Note cut object
 
-```json
-{
+```js
+NoteCutObject = {
 	"noteID": Integer, // ID of the note
 	"noteType": "NoteA" | "NoteB" | "GhostNote" | "Bomb", // Type of note
 	"noteCutDirection": "Up" | "Down" | "Left" | "Right" | "UpLeft" | "UpRight" | "DownLeft" | "DownRight" | "Any" | "None", // Direction the note is supposed to be cut in
