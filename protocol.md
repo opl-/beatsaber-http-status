@@ -116,6 +116,7 @@ NoteCutObject = {
 | --------------------- | ----------- | -----------
 | `Init`                | `scene`     | Game start
 | `Menu`                | `menu`      | Main menu (song selection, settings, beatmap result)
+| `HealthWarning`       | `scene`     | Reminder for the player to take breaks
 | `GameCore`            | `scene`     | Unknown. Activated after song selection.
 | `StandardLevelLoader` | `scene`     | Loading environments? Loaded after `GameCore`
 | `StandardLevel`       | `songStart` | Playing a beatmap
@@ -132,7 +133,7 @@ Contains the full [Status object](#status-object).
 
 ### `scene` event
 
-Fired when a scene other than `Menu` and `StandardLevel` is activated.
+Fired when a scene other than `Menu` and `StandardLevel` is loaded. `Menu` fires the [`menu` event](#menu-event) and `StandardLevel` fires the [`songStart` event](#songstart-event).
 
 Contains the full [Status object](#status-object).
 

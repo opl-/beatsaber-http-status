@@ -58,18 +58,18 @@ namespace BeatSaberHTTPStatus {
 			if (initialized) return;
 			initialized = true;
 
-			SceneManager.activeSceneChanged += OnActiveSceneChanged;
+			SceneManager.sceneLoaded += OnSceneLoaded;
 
 			server = new HTTPServer(statusManager);
 			server.InitServer();
 		}
 
 		public void OnApplicationQuit() {
-			SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+			SceneManager.sceneLoaded -= OnSceneLoaded;
 
 			if (gamePauseManager != null) {
-				RemoveSubscriber(gamePauseManager, "_gameDidPauseEvent", OnGamePause);
-				RemoveSubscriber(gamePauseManager, "_gameDidResumeEvent", OnGameResume);
+				RemoveSubscriber(gamePauseManager, "_gameDidPauseSignal", OnGamePause);
+				RemoveSubscriber(gamePauseManager, "_gameDidResumeSignal", OnGameResume);
 			}
 
 			if (scoreController != null) {
@@ -81,17 +81,16 @@ namespace BeatSaberHTTPStatus {
 			}
 
 			if (gameplayManager != null) {
-				RemoveSubscriber(gameplayManager, "_levelFinishedEvent", OnLevelFinished);
-				RemoveSubscriber(gameplayManager, "_levelFailedEvent", OnLevelFailed);
+				RemoveSubscriber(gameplayManager, "_levelFinishedSignal", OnLevelFinished);
+				RemoveSubscriber(gameplayManager, "_levelFailedSignal", OnLevelFailed);
 			}
 
 			server.StopServer();
 		}
 
-		private void OnActiveSceneChanged(Scene oldScene, Scene newScene) {
+		private void OnSceneLoaded(Scene newScene, LoadSceneMode mode) {
 			var gameStatus = statusManager.gameStatus;
 
-			// GameCore, StandardLevel, StandardLevelLoader (LevelWasLoaded only), Menu
 			gameStatus.scene = newScene.name;
 
 			if (newScene.name == "Menu") {
@@ -134,10 +133,10 @@ namespace BeatSaberHTTPStatus {
 				audioTimeSyncController = (AudioTimeSyncController) audioTimeSyncControllerField.GetValue(gameSongController);
 
 				// Register event listeners
-				// private GameEvent GamePauseManager#_gameDidPauseEvent
-				AddSubscriber(gamePauseManager, "_gameDidPauseEvent", OnGamePause);
-				// private GameEvent GamePauseManager#_gameDidResumeEvent
-				AddSubscriber(gamePauseManager, "_gameDidResumeEvent", OnGameResume);
+				// private GameEvent GamePauseManager#_gameDidPauseSignal
+				AddSubscriber(gamePauseManager, "_gameDidPauseSignal", OnGamePause);
+				// private GameEvent GamePauseManager#_gameDidResumeSignal
+				AddSubscriber(gamePauseManager, "_gameDidResumeSignal", OnGameResume);
 				// public ScoreController#noteWasCutEvent<NoteData, NoteCutInfo, int multiplier> // called after AfterCutScoreBuffer is created
 				scoreController.noteWasCutEvent += OnNoteWasCut;
 				// public ScoreController#noteWasMissedEvent<NoteData, int multiplier>
@@ -148,10 +147,10 @@ namespace BeatSaberHTTPStatus {
 				scoreController.comboDidChangeEvent += OnComboDidChange;
 				// public ScoreController#multiplierDidChangeEvent<int, float> // multiplier, progress [0..1]
 				scoreController.multiplierDidChangeEvent += OnMultiplierDidChange;
-				// private GameEvent GameplayManager#_levelFinishedEvent
-				AddSubscriber(gameplayManager, "_levelFinishedEvent", OnLevelFinished);
-				// private GameEvent GameplayManager#_levelFailedEvent
-				AddSubscriber(gameplayManager, "_levelFailedEvent", OnLevelFailed);
+				// private GameEvent GameplayManager#_levelFinishedSignal
+				AddSubscriber(gameplayManager, "_levelFinishedSignal", OnLevelFinished);
+				// private GameEvent GameplayManager#_levelFailedSignal
+				AddSubscriber(gameplayManager, "_levelFailedSignal", OnLevelFailed);
 
                 var diff = mainSetupData.difficultyLevel;
                 var level = diff.level;
@@ -190,6 +189,11 @@ namespace BeatSaberHTTPStatus {
 			Type t = obj.GetType();
 			FieldInfo gameEventField = t.GetField(field, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
+			if (gameEventField == null) {
+				Console.WriteLine("[HTTP Status] Can't subscribe to " + t.Name + "." + field);
+				return;
+			}
+
 			MethodInfo methodInfo = gameEventField.FieldType.GetMethod("Subscribe");
 			methodInfo.Invoke(gameEventField.GetValue(obj), new object[] {action});
 		}
@@ -197,6 +201,11 @@ namespace BeatSaberHTTPStatus {
 		private void RemoveSubscriber(object obj, string field, Action action) {
 			Type t = obj.GetType();
 			FieldInfo gameEventField = t.GetField(field, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+			if (gameEventField == null) {
+				Console.WriteLine("[HTTP Status] Can't unsubscribe from " + t.Name + "." + field);
+				return;
+			}
 
 			MethodInfo methodInfo = gameEventField.FieldType.GetMethod("Unsubscribe");
 			methodInfo.Invoke(gameEventField.GetValue(obj), new object[] {action});
