@@ -1,6 +1,6 @@
 # Beat Saber HTTP Status
 
-This plugin exposes information about the current game status, live over a WebSocket and over HTTP. It can be used to build custom stream overlays or track player performance by third party programs.
+This plugin exposes information about the current game status, live over a WebSocket and over HTTP. It can be used to build [custom stream overlays](https://github.com/opl-/beatsaber-stream-overlay) or track player performance by third party programs.
 
 ## Installation
 
