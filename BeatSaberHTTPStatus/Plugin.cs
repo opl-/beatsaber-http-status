@@ -152,8 +152,8 @@ namespace BeatSaberHTTPStatus {
 				// private GameEvent GameplayManager#_levelFailedSignal
 				AddSubscriber(gameplayManager, "_levelFailedSignal", OnLevelFailed);
 
-                var diff = mainSetupData.difficultyLevel;
-                var level = diff.level;
+				var diff = mainSetupData.difficultyLevel;
+				var level = diff.level;
 
 				gameStatus.mode = mainSetupData.gameplayMode.ToString();
 
