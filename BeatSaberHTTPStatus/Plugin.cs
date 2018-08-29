@@ -51,7 +51,7 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public string Version {
-			get {return "1.0.0";}
+			get {return "1.1.1";}
 		}
 
 		public void OnApplicationStart() {
