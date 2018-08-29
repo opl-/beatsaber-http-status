@@ -160,8 +160,6 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.songName = level.songName;
 				gameStatus.songSubName = level.songSubName;
 				gameStatus.songAuthorName = level.songAuthorName;
-				// FIXME: this throws really nicely
-				// gameStatus.songCover = System.Convert.ToBase64String(ImageConversion.EncodeToPNG(level.coverImage.texture));
 				gameStatus.songBPM = level.beatsPerMinute;
 				gameStatus.songTimeOffset = (long) (level.songTimeOffset * 1000f);
 				gameStatus.length = (long) (level.audioClip.length * 1000f);
@@ -171,6 +169,35 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.notesCount = diff.beatmapData.notesCount;
 				gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
 				gameStatus.maxScore = ScoreController.MaxScoreForNumberOfNotes(diff.beatmapData.notesCount);
+
+				try {
+					// From https://support.unity3d.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
+					var texture = level.coverImage.texture;
+					var active = RenderTexture.active;
+					var temporary = RenderTexture.GetTemporary(
+						texture.width,
+						texture.height,
+						0,
+						RenderTextureFormat.Default,
+						RenderTextureReadWrite.Linear
+					);
+
+					Graphics.Blit(texture, temporary);
+					RenderTexture.active = temporary;
+
+					var cover = new Texture2D(texture.width, texture.height);
+					cover.ReadPixels(new Rect(0, 0, temporary.width, temporary.height), 0, 0);
+					cover.Apply();
+
+					RenderTexture.active = active;
+					RenderTexture.ReleaseTemporary(temporary);
+
+					gameStatus.songCover = System.Convert.ToBase64String(
+						ImageConversion.EncodeToPNG(cover)
+					);
+				} catch {
+					gameStatus.songCover = null;
+				}
 
 				gameStatus.ResetPerformance();
 
