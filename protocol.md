@@ -52,7 +52,7 @@ StatusObject = {
 	},
 	"performance": null | {
 		"score": Integer, // Current score
-		"currentMaxScore": Number, // Maximum score achievable at current passed notes
+		"currentMaxScore": Integer, // Maximum score achievable at current passed notes
 		"rank": "SSS" | "SS" | "S" | "A" | "B" | "C" | "D" | "E", // Current rank
 		"passedNotes": Integer, // Amount of hit or missed cubes
 		"hitNotes": Integer, // Amount of hit cubes
