@@ -38,7 +38,7 @@ namespace BeatSaberHTTPStatus {
 		/// private int AfterCutScoreBuffer#_multiplier
 		private FieldInfo afterCutScoreBufferMultiplierField = typeof(AfterCutScoreBuffer).GetField("_multiplier", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 		/// protected bool ScoreController._playerHeadWasInObstacle // changed to true on first tick with player head in obstacle, then back to false
-		private FieldInfo playHeasWasInObstacleField = typeof(ScoreController).GetField("_playerHeadWasInObstacle", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+		private FieldInfo playHeadWasInObstacleField = typeof(ScoreController).GetField("_playerHeadWasInObstacle", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 		/// private static LevelCompletionResults.Rank LevelCompletionResults.GetRankForScore(int score, int maxPossibleScore)
 		private MethodInfo getRankForScoreMethod = typeof(LevelCompletionResults).GetMethod("GetRankForScore", BindingFlags.NonPublic | BindingFlags.Static);
 		/// private GameSongController GameplayManager._gameSongController
@@ -387,7 +387,7 @@ namespace BeatSaberHTTPStatus {
 
 		public void CheckHeadInObstacle() {
 			// TODO: this feels like a dodgy way of doing this. might not fire sometimes or instantly. BeatmapObjectExecutionRatingsRecorder has a better implementation
-			bool currentHeadInObstacle = (bool) playHeasWasInObstacleField.GetValue(scoreController);
+			bool currentHeadInObstacle = (bool) playHeadWasInObstacleField.GetValue(scoreController);
 
 			if (!headInObstacle && currentHeadInObstacle) {
 				headInObstacle = true;
