@@ -75,9 +75,9 @@ namespace BeatSaberHTTPStatus {
 			if (scoreController != null) {
 				scoreController.noteWasCutEvent += OnNoteWasCut;
 				scoreController.noteWasMissedEvent -= OnNoteWasMissed;
-				scoreController.scoreDidChangeEvent += OnScoreDidChange;
-				scoreController.comboDidChangeEvent += OnComboDidChange;
-				scoreController.multiplierDidChangeEvent += OnMultiplierDidChange;
+				scoreController.scoreDidChangeEvent -= OnScoreDidChange;
+				scoreController.comboDidChangeEvent -= OnComboDidChange;
+				scoreController.multiplierDidChangeEvent -= OnMultiplierDidChange;
 			}
 
 			if (gameplayManager != null) {
