@@ -163,7 +163,7 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.songBPM = level.beatsPerMinute;
 				gameStatus.songTimeOffset = (long) (level.songTimeOffset * 1000f);
 				gameStatus.length = (long) (level.audioClip.length * 1000f);
-				gameStatus.start = GetCurrentTime() - (long) (audioTimeSyncController.songTime * 1000f);
+				gameStatus.start = GetCurrentTime();
 				gameStatus.paused = 0;
 				gameStatus.difficulty = diff.difficulty.Name();
 				gameStatus.notesCount = diff.beatmapData.notesCount;
