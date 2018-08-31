@@ -72,12 +72,24 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="**\*.cs" />
+    <ToCompile Include="**\*.cs" Exclude="bin\**\*;obj\**\*" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- Clean output directory before build -->
   <Target Name="BeforeBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <RemoveDir Directories="$(OutDir)" />
   </Target>
+  <!-- Replace strings in source files -->
+  <Target Name="BeforeBuild">
+    <PropertyGroup>
+      <IntermediateSourcePath>$(IntermediateOutputPath)src\</IntermediateSourcePath>
+    </PropertyGroup>
+    <Copy SourceFiles="@(ToCompile)" DestinationFiles="@(ToCompile->'$(IntermediateSourcePath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true">
+      <Output TaskParameter="CopiedFiles" ItemName="Compile" />
+    </Copy>
+    <ReplaceFileText InputFilename="$(IntermediateSourcePath)Plugin.cs" OutputFilename="$(IntermediateSourcePath)Plugin.cs" MatchExpression="$VERSION$" ReplacementText="$(Version)" />
+  </Target>
+  <!-- Package built DLLs into a zip -->
   <Target Name="AfterBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <ItemGroup>
       <ZipFiles Include="$(OutDir)\BeatSaberHTTPStatus.dll" />
@@ -116,6 +128,30 @@
           return false;
         }
       ]]></Code>
+    </Task>
+  </UsingTask>
+  <!-- Source: https://stackoverflow.com/a/22571621 -->
+  <UsingTask TaskName="ReplaceFileText" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <InputFilename ParameterType="System.String" Required="true" />
+      <OutputFilename ParameterType="System.String" Required="true" />
+      <MatchExpression ParameterType="System.String" Required="true" />
+      <ReplacementText ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System.Core" />
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+          Log.LogMessage(string.Format("Replacing {0} in {1}", MatchExpression, InputFilename));
+          File.WriteAllText(
+            OutputFilename,
+            Regex.Replace(File.ReadAllText(InputFilename), MatchExpression, ReplacementText)
+          );
+        ]]>
+      </Code>
     </Task>
   </UsingTask>
 </Project>

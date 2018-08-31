@@ -52,7 +52,7 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public string Version {
-			get {return "1.2.0";}
+			get {return "$VERSION$";} // Populated by MSBuild
 		}
 
 		public void OnApplicationStart() {
