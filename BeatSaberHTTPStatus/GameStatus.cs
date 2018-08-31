@@ -70,6 +70,10 @@ namespace BeatSaberHTTPStatus {
 		public bool modNoEnergy = false;
 		public bool modMirror = false;
 
+		// Beatmap event
+		public int beatmapEventType = 0;
+		public int beatmapEventValue = 0;
+
 		public void ResetMapInfo() {
 			this.songName = null;
 			this.songSubName = null;

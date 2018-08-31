@@ -98,6 +98,10 @@ namespace BeatSaberHTTPStatus {
 				eventJSON["noteCut"] = statusManager.noteCutJSON;
 			}
 
+			if (changedProps.beatmapEvent) {
+				eventJSON["beatmapEvent"] = statusManager.beatmapEventJSON;
+			}
+
 			Send(eventJSON.ToString());
 		}
 	}

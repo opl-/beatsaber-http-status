@@ -16,11 +16,17 @@ namespace BeatSaberHTTPStatus {
 			get {return _noteCutJSON;}
 		}
 
+		private JSONObject _beatmapEventJSON;
+		public JSONObject beatmapEventJSON {
+			get {return _beatmapEventJSON;}
+		}
+
 		public event Action<StatusManager, ChangedProperties, string> statusChange;
 
 		public StatusManager() {
 			_statusJSON = new JSONObject();
 			_noteCutJSON = new JSONObject();
+			_beatmapEventJSON = new JSONObject();
 
 			UpdateAll();
 		}
@@ -33,6 +39,7 @@ namespace BeatSaberHTTPStatus {
 			if (changedProps.performance) UpdatePerformanceJSON();
 			if (changedProps.noteCut) UpdateNoteCutJSON();
 			if (changedProps.mod) UpdateModJSON();
+			if (changedProps.beatmapEvent) UpdateBeatmapEventJSON();
 
 			if (statusChange != null) statusChange(this, changedProps, cause);
 		}
@@ -43,6 +50,7 @@ namespace BeatSaberHTTPStatus {
 			UpdatePerformanceJSON();
 			UpdateNoteCutJSON();
 			UpdateModJSON();
+			UpdateBeatmapEventJSON();
 		}
 
 		private void UpdateGameJSON() {
@@ -141,31 +149,39 @@ namespace BeatSaberHTTPStatus {
 			modJSON["mirror"] = gameStatus.modMirror;
 		}
 
+		private void UpdateBeatmapEventJSON() {
+			_beatmapEventJSON["type"] = gameStatus.beatmapEventType;
+			_beatmapEventJSON["value"] = gameStatus.beatmapEventValue;
+		}
+
 		private JSONNode stringOrNull(string str) {
 			return str == null ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONString(str);
 		}
 	}
 
 	public class ChangedProperties {
-		public static readonly ChangedProperties AllButNoteCut = new ChangedProperties(true, true, true, false, true);
-		public static readonly ChangedProperties Game = new ChangedProperties(true, false, false, false, false);
-		public static readonly ChangedProperties Beatmap = new ChangedProperties(false, true, false, false, false);
-		public static readonly ChangedProperties Performance = new ChangedProperties(false, false, true, false, false);
-		public static readonly ChangedProperties PerformanceAndNoteCut = new ChangedProperties(false, false, true, true, false);
-		public static readonly ChangedProperties Mod = new ChangedProperties(false, false, false, false, true);
+		public static readonly ChangedProperties AllButNoteCut = new ChangedProperties(true, true, true, false, true, false);
+		public static readonly ChangedProperties Game = new ChangedProperties(true, false, false, false, false, false);
+		public static readonly ChangedProperties Beatmap = new ChangedProperties(false, true, false, false, false, false);
+		public static readonly ChangedProperties Performance = new ChangedProperties(false, false, true, false, false, false);
+		public static readonly ChangedProperties PerformanceAndNoteCut = new ChangedProperties(false, false, true, true, false, false);
+		public static readonly ChangedProperties Mod = new ChangedProperties(false, false, false, false, true, false);
+		public static readonly ChangedProperties BeatmapEvent = new ChangedProperties(false, false, false, false, false, true);
 
 		public readonly bool game;
 		public readonly bool beatmap;
 		public readonly bool performance;
 		public readonly bool noteCut;
 		public readonly bool mod;
+		public readonly bool beatmapEvent;
 
-		public ChangedProperties(bool game, bool beatmap, bool performance, bool noteCut, bool mod) {
+		public ChangedProperties(bool game, bool beatmap, bool performance, bool noteCut, bool mod, bool beatmapEvent) {
 			this.game = game;
 			this.beatmap = beatmap;
 			this.performance = performance;
 			this.noteCut = noteCut;
 			this.mod = mod;
+			this.beatmapEvent = beatmapEvent;
 		}
 	};
 }

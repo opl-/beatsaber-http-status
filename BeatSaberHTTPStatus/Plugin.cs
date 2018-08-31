@@ -28,6 +28,7 @@ namespace BeatSaberHTTPStatus {
 		private ScoreController scoreController;
 		private GameplayManager gameplayManager;
 		private AudioTimeSyncController audioTimeSyncController;
+		private BeatmapObjectCallbackController beatmapObjectCallbackController;
 
 		/// protected NoteCutInfo AfterCutScoreBuffer._noteCutInfo
 		private FieldInfo noteCutInfoField = typeof(AfterCutScoreBuffer).GetField("_noteCutInfo", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
@@ -85,6 +86,10 @@ namespace BeatSaberHTTPStatus {
 				RemoveSubscriber(gameplayManager, "_levelFailedSignal", OnLevelFailed);
 			}
 
+			if (beatmapObjectCallbackController != null) {
+				beatmapObjectCallbackController.beatmapEventDidTriggerEvent -= OnBeatmapEventDidTrigger;
+			}
+
 			server.StopServer();
 		}
 
@@ -129,6 +134,12 @@ namespace BeatSaberHTTPStatus {
 					return;
 				}
 
+				beatmapObjectCallbackController = Resources.FindObjectsOfTypeAll<BeatmapObjectCallbackController>().FirstOrDefault();
+				if (beatmapObjectCallbackController == null) {
+					Console.WriteLine("[HTTP Status] Couldn't find BeatmapObjectCallbackController");
+					return;
+				}
+
 				GameSongController gameSongController = (GameSongController) gameSongControllerField.GetValue(gameplayManager);
 				audioTimeSyncController = (AudioTimeSyncController) audioTimeSyncControllerField.GetValue(gameSongController);
 
@@ -151,6 +162,8 @@ namespace BeatSaberHTTPStatus {
 				AddSubscriber(gameplayManager, "_levelFinishedSignal", OnLevelFinished);
 				// private GameEvent GameplayManager#_levelFailedSignal
 				AddSubscriber(gameplayManager, "_levelFailedSignal", OnLevelFailed);
+				// public event Action<BeatmapEventData> BeatmapObjectCallbackController#beatmapEventDidTriggerEvent
+				beatmapObjectCallbackController.beatmapEventDidTriggerEvent += OnBeatmapEventDidTrigger;
 
 				var diff = mainSetupData.difficultyLevel;
 				var level = diff.level;
@@ -406,6 +419,13 @@ namespace BeatSaberHTTPStatus {
 
 		public void OnLevelFailed() {
 			statusManager.EmitStatusUpdate(ChangedProperties.Performance, "failed");
+		}
+
+		public void OnBeatmapEventDidTrigger(BeatmapEventData beatmapEventData) {
+			statusManager.gameStatus.beatmapEventType = (int) beatmapEventData.type;
+			statusManager.gameStatus.beatmapEventValue = beatmapEventData.value;
+
+			statusManager.EmitStatusUpdate(ChangedProperties.BeatmapEvent, "beatmapEvent");
 		}
 
 		public static long GetCurrentTime() {

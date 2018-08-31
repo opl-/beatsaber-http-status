@@ -110,6 +110,17 @@ NoteCutObject = {
 }
 ```
 
+### Beatmap event object
+
+Basic references for event types and values can be found here: <https://steamcommunity.com/sharedfiles/filedetails/?id=1377190061>
+
+```js
+BeatmapEvent = {
+	"type": Integer,
+	"value": Integer,
+}
+```
+
 ### Scene string
 
 | Scene                 | Event       | Description
@@ -224,3 +235,9 @@ Contains only the `performance` property of [Status object](#status-object).
 Fired when the score changes.
 
 Contains only the `performance` property of [Status object](#status-object).
+
+### `beatmapEvent` event
+
+Fired when a beatmap event is triggered. Beatmap events include changing light colors, light rotation speed and moving the square rings.
+
+Contains only a `beatmapEvent` property as described in [Beatmap event object](#beatmap-event-object).
