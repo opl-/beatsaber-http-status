@@ -52,7 +52,7 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public string Version {
-			get {return "1.1.1";}
+			get {return "1.2.0";}
 		}
 
 		public void OnApplicationStart() {
