@@ -92,8 +92,10 @@
   <!-- Package built DLLs into a zip -->
   <Target Name="AfterBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <ItemGroup>
-      <ZipFiles Include="$(OutDir)\BeatSaberHTTPStatus.dll" />
-      <ZipFiles Include="$(OutDir)\websocket-sharp.dll" />
+      <ZipFilesPlugins Include="$(OutDir)\BeatSaberHTTPStatus.dll" />
+    </ItemGroup>
+    <ItemGroup>
+      <ZipFilesLibs Include="$(OutDir)\websocket-sharp.dll" />
     </ItemGroup>
     <Exec Command="git rev-parse HEAD &gt; $(IntermediateOutputPath)head" />
     <ReadLinesFromFile File="$(IntermediateOutputPath)head">
@@ -103,7 +105,8 @@
     <PropertyGroup>
       <CommitHash>$(FullCommitHash.Substring(0, 8))</CommitHash>
     </PropertyGroup>
-    <Copy SourceFiles="@(ZipFiles)" DestinationFolder="$(IntermediateOutputPath)\zip\Plugins" />
+    <Copy SourceFiles="@(ZipFilesPlugins)" DestinationFolder="$(IntermediateOutputPath)\zip\Plugins" />
+    <Copy SourceFiles="@(ZipFilesLibs)" DestinationFolder="$(IntermediateOutputPath)\zip\Beat Saber_Data\Plugins" />
     <ZipDir ZipFileName="$(OutDir)\BeatSaberHTTPStatus-$(Version)-bs$(BeatSaberVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
   </Target>
   <!-- Source: https://stackoverflow.com/a/38127938 -->
