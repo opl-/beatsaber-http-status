@@ -4,7 +4,7 @@ This document describes the protocol used by the Beat Saber HTTP Status plugin.
 
 ## Connecting
 
-The web server by default runs on port `6557` (**B**eat **S**aber **ST**atus`). Secure connections are currently not supported.
+The web server by default runs on port `6557` (**B**eat **S**aber **ST**atus). Secure connections are currently not supported.
 
 ## Endpoints
 
@@ -12,7 +12,7 @@ The web server by default runs on port `6557` (**B**eat **S**aber **ST**atus`). 
 
 Returns the [Status object](#status-object).
 
-### /socket
+### `/socket`
 
 Use this path to connect to the WebSocket. The WebSocket will send the [hello event](#hello-event) when connected and new [events](#events) as they happen.
 
