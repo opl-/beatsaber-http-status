@@ -156,6 +156,7 @@ namespace BeatSaberHTTPStatus {
 				// private GameEvent GamePauseManager#_gameDidResumeSignal
 				AddSubscriber(gamePauseManager, "_gameDidResumeSignal", OnGameResume);
 				// public ScoreController#noteWasCutEvent<NoteData, NoteCutInfo, int multiplier> // called after AfterCutScoreBuffer is created
+				gameEnergyCounter.gameEnergyDidChangeEvent += OnEnergyChange;
 				scoreController.noteWasCutEvent += OnNoteWasCut;
 				// public ScoreController#noteWasMissedEvent<NoteData, int multiplier>
 				scoreController.noteWasMissedEvent += OnNoteWasMissed;
@@ -171,7 +172,6 @@ namespace BeatSaberHTTPStatus {
 				AddSubscriber(gameplayManager, "_levelFailedSignal", OnLevelFailed);
 				// public event Action<BeatmapEventData> BeatmapObjectCallbackController#beatmapEventDidTriggerEvent
 				beatmapObjectCallbackController.beatmapEventDidTriggerEvent += OnBeatmapEventDidTrigger;
-				gameEnergyCounter.gameEnergyDidChangeEvent += OnEnergyChange;
 
 
 				var diff = mainSetupData.difficultyLevel;
@@ -227,10 +227,6 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.modObstacles = mainSetupData.gameplayOptions.obstaclesOption.ToString();
 				gameStatus.modNoEnergy = mainSetupData.gameplayOptions.noEnergy;
 				gameStatus.modMirror = mainSetupData.gameplayOptions.mirror;
-
-				if (gameStatus.modNoEnergy) {
-					gameStatus.energy = 0;
-				}
 
 				statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
 			} else {
@@ -444,9 +440,10 @@ namespace BeatSaberHTTPStatus {
 		public void OnEnergyChange(float energy) {
 			statusManager.gameStatus.energy = energy;
 
-			statusManager.EmitStatusUpdate(ChangedProperties.BeatmapEvent, "energyChanged");
+			CheckHeadInObstacle();
+			// statusManager.EmitStatusUpdate(ChangedProperties.Performance, "energyChanged");
 		}
-
+		// See https://github.com/opl-/beatsaber-http-status/pull/5#issuecomment-430704031
 
 		public static long GetCurrentTime() {
 			return (long) (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).Ticks / TimeSpan.TicksPerMillisecond);
