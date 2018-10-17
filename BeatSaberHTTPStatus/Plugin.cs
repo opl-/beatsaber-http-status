@@ -228,7 +228,7 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.modNoEnergy = mainSetupData.gameplayOptions.noEnergy;
 				gameStatus.modMirror = mainSetupData.gameplayOptions.mirror;
 
-				if (gameStatus.modNoEnergy)	{
+				if (gameStatus.modNoEnergy) {
 					gameStatus.energy = 0;
 				}
 
