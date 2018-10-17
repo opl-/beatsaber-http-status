@@ -63,6 +63,7 @@ StatusObject = {
 		"maxCombo": Integer, // Max obtained combo
 		"multiplier": Integer, // Current multiplier [1, 2, 4, 8]
 		"multiplierProgress": Number, // Current multiplier progress [0..1)
+		"energy": Number, // Current energy (HP) [0..1] - Note: This is still returned if mod.noEnergy is true.
 	},
 	"mod": {
 		"obstacles": false | "FullHeightOnly" | "All", // No Obstacles (FullHeightOnly is not possible from UI)
@@ -233,6 +234,12 @@ Contains only the `performance` property of [Status object](#status-object).
 ### `scoreChanged` event
 
 Fired when the score changes.
+
+Contains only the `performance` property of [Status object](#status-object).
+
+### `energyChanged` event
+
+Fired when the energy (HP) changes.
 
 Contains only the `performance` property of [Status object](#status-object).
 
