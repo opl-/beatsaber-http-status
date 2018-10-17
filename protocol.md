@@ -224,7 +224,7 @@ Fired when the player enters an obstacle.
 
 Contains only the `performance` property of [Status object](#status-object).
 
-### `obstacleEnter` event
+### `obstacleExit` event
 
 Fired when the player exits an obstacle.
 
