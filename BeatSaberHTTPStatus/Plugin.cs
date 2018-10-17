@@ -155,7 +155,7 @@ namespace BeatSaberHTTPStatus {
 				AddSubscriber(gamePauseManager, "_gameDidPauseSignal", OnGamePause);
 				// private GameEvent GamePauseManager#_gameDidResumeSignal
 				AddSubscriber(gamePauseManager, "_gameDidResumeSignal", OnGameResume);
-				// public ScoreController#noteWasMissedEvent<float energy>
+				// public GameEnergyCounter#gameEnergyDidChangeEvent<float energy>
 				gameEnergyCounter.gameEnergyDidChangeEvent += OnEnergyChange;
 				// public ScoreController#noteWasCutEvent<NoteData, NoteCutInfo, int multiplier> // called after AfterCutScoreBuffer is created
 				scoreController.noteWasCutEvent += OnNoteWasCut;
