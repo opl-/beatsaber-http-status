@@ -107,6 +107,7 @@ namespace BeatSaberHTTPStatus {
 			performanceJSON["maxCombo"] = gameStatus.maxCombo;
 			performanceJSON["multiplier"] = gameStatus.multiplier;
 			performanceJSON["multiplierProgress"] = gameStatus.multiplierProgress;
+			performanceJSON["energy"] = gameStatus.energy;
 		}
 
 		private void UpdateNoteCutJSON() {

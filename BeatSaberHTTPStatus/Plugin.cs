@@ -29,6 +29,7 @@ namespace BeatSaberHTTPStatus {
 		private GameplayManager gameplayManager;
 		private AudioTimeSyncController audioTimeSyncController;
 		private BeatmapObjectCallbackController beatmapObjectCallbackController;
+		private GameEnergyCounter gameEnergyCounter;
 
 		/// protected NoteCutInfo AfterCutScoreBuffer._noteCutInfo
 		private FieldInfo noteCutInfoField = typeof(AfterCutScoreBuffer).GetField("_noteCutInfo", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
@@ -140,6 +141,13 @@ namespace BeatSaberHTTPStatus {
 					return;
 				}
 
+				gameEnergyCounter = UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
+				if (gameEnergyCounter == null)
+				{
+					Console.WriteLine("[HTTP Status] Couldn't find GameEnergyCounter");
+					return;
+				}
+
 				GameSongController gameSongController = (GameSongController) gameSongControllerField.GetValue(gameplayManager);
 				audioTimeSyncController = (AudioTimeSyncController) audioTimeSyncControllerField.GetValue(gameSongController);
 
@@ -164,6 +172,8 @@ namespace BeatSaberHTTPStatus {
 				AddSubscriber(gameplayManager, "_levelFailedSignal", OnLevelFailed);
 				// public event Action<BeatmapEventData> BeatmapObjectCallbackController#beatmapEventDidTriggerEvent
 				beatmapObjectCallbackController.beatmapEventDidTriggerEvent += OnBeatmapEventDidTrigger;
+				gameEnergyCounter.gameEnergyDidChangeEvent += OnEnergyChange;
+
 
 				var diff = mainSetupData.difficultyLevel;
 				var level = diff.level;
@@ -218,6 +228,11 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.modObstacles = mainSetupData.gameplayOptions.obstaclesOption.ToString();
 				gameStatus.modNoEnergy = mainSetupData.gameplayOptions.noEnergy;
 				gameStatus.modMirror = mainSetupData.gameplayOptions.mirror;
+
+				if (gameStatus.modNoEnergy)
+				{
+					gameStatus.energy = 0;
+				}
 
 				statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
 			} else {
@@ -428,6 +443,14 @@ namespace BeatSaberHTTPStatus {
 			statusManager.EmitStatusUpdate(ChangedProperties.BeatmapEvent, "beatmapEvent");
 		}
 
+		public void OnEnergyChange(float energy)
+		{
+			statusManager.gameStatus.energy = energy;
+
+			statusManager.EmitStatusUpdate(ChangedProperties.BeatmapEvent, "energyChanged");
+		}
+
+
 		public static long GetCurrentTime() {
 			return (long) (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).Ticks / TimeSpan.TicksPerMillisecond);
 		}
@@ -436,5 +459,5 @@ namespace BeatSaberHTTPStatus {
 		public void OnLevelWasInitialized(int level) {}
 		public void OnUpdate() {}
 		public void OnFixedUpdate() {}
-    }
+	}
 }
