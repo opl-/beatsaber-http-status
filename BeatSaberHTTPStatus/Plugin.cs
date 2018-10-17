@@ -29,6 +29,7 @@ namespace BeatSaberHTTPStatus {
 		private GameplayManager gameplayManager;
 		private AudioTimeSyncController audioTimeSyncController;
 		private BeatmapObjectCallbackController beatmapObjectCallbackController;
+		private PlayerHeadAndObstacleInteraction playerHeadAndObstacleInteraction;
 
 		/// protected NoteCutInfo AfterCutScoreBuffer._noteCutInfo
 		private FieldInfo noteCutInfoField = typeof(AfterCutScoreBuffer).GetField("_noteCutInfo", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
@@ -38,8 +39,8 @@ namespace BeatSaberHTTPStatus {
 		private FieldInfo afterCutScoreWithMultiplierField = typeof(AfterCutScoreBuffer).GetField("_afterCutScoreWithMultiplier", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 		/// private int AfterCutScoreBuffer#_multiplier
 		private FieldInfo afterCutScoreBufferMultiplierField = typeof(AfterCutScoreBuffer).GetField("_multiplier", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-		/// protected bool ScoreController._playerHeadWasInObstacle // changed to true on first tick with player head in obstacle, then back to false
-		private FieldInfo playHeadWasInObstacleField = typeof(ScoreController).GetField("_playerHeadWasInObstacle", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+		/// protected bool ScoreController._playerHeadAndObstacleInteraction
+		private FieldInfo playerHeadAndObstacleInteractionField = typeof(ScoreController).GetField("_playerHeadAndObstacleInteraction", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 		/// private static LevelCompletionResults.Rank LevelCompletionResults.GetRankForScore(int score, int maxPossibleScore)
 		private MethodInfo getRankForScoreMethod = typeof(LevelCompletionResults).GetMethod("GetRankForScore", BindingFlags.NonPublic | BindingFlags.Static);
 		/// private GameSongController GameplayManager._gameSongController
@@ -142,6 +143,7 @@ namespace BeatSaberHTTPStatus {
 
 				GameSongController gameSongController = (GameSongController) gameSongControllerField.GetValue(gameplayManager);
 				audioTimeSyncController = (AudioTimeSyncController) audioTimeSyncControllerField.GetValue(gameSongController);
+				playerHeadAndObstacleInteraction = (PlayerHeadAndObstacleInteraction) playerHeadAndObstacleInteractionField.GetValue(scoreController);
 
 				// Register event listeners
 				// private GameEvent GamePauseManager#_gameDidPauseSignal
@@ -249,6 +251,20 @@ namespace BeatSaberHTTPStatus {
 
 			MethodInfo methodInfo = gameEventField.FieldType.GetMethod("Unsubscribe");
 			methodInfo.Invoke(gameEventField.GetValue(obj), new object[] {action});
+		}
+
+		public void OnUpdate() {
+			bool currentHeadInObstacle = playerHeadAndObstacleInteraction.intersectingObstacles.Count > 0;
+
+			if (!headInObstacle && currentHeadInObstacle) {
+				headInObstacle = true;
+
+				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "obstacleEnter");
+			} else if (headInObstacle && !currentHeadInObstacle) {
+				headInObstacle = false;
+
+				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "obstacleExit");
+			}
 		}
 
 		public void OnGamePause() {
@@ -387,30 +403,11 @@ namespace BeatSaberHTTPStatus {
 			statusManager.gameStatus.combo = combo;
 			// public int ScoreController#maxCombo
 			statusManager.gameStatus.maxCombo = scoreController.maxCombo;
-
-			CheckHeadInObstacle();
 		}
 
 		public void OnMultiplierDidChange(int multiplier, float multiplierProgress) {
 			statusManager.gameStatus.multiplier = multiplier;
 			statusManager.gameStatus.multiplierProgress = multiplierProgress;
-
-			CheckHeadInObstacle();
-		}
-
-		public void CheckHeadInObstacle() {
-			// TODO: this feels like a dodgy way of doing this. might not fire sometimes or instantly. BeatmapObjectExecutionRatingsRecorder has a better implementation
-			bool currentHeadInObstacle = (bool) playHeadWasInObstacleField.GetValue(scoreController);
-
-			if (!headInObstacle && currentHeadInObstacle) {
-				headInObstacle = true;
-
-				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "obstacleEnter");
-			} else if (headInObstacle && !currentHeadInObstacle) {
-				headInObstacle = false;
-
-				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "obstacleExit");
-			}
 		}
 
 		public void OnLevelFinished() {
@@ -434,7 +431,6 @@ namespace BeatSaberHTTPStatus {
 
 		public void OnLevelWasLoaded(int level) {}
 		public void OnLevelWasInitialized(int level) {}
-		public void OnUpdate() {}
 		public void OnFixedUpdate() {}
     }
 }
