@@ -142,8 +142,7 @@ namespace BeatSaberHTTPStatus {
 				}
 
 				gameEnergyCounter = UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
-				if (gameEnergyCounter == null)
-				{
+				if (gameEnergyCounter == null) {
 					Console.WriteLine("[HTTP Status] Couldn't find GameEnergyCounter");
 					return;
 				}
@@ -229,8 +228,7 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.modNoEnergy = mainSetupData.gameplayOptions.noEnergy;
 				gameStatus.modMirror = mainSetupData.gameplayOptions.mirror;
 
-				if (gameStatus.modNoEnergy)
-				{
+				if (gameStatus.modNoEnergy)	{
 					gameStatus.energy = 0;
 				}
 
@@ -443,8 +441,7 @@ namespace BeatSaberHTTPStatus {
 			statusManager.EmitStatusUpdate(ChangedProperties.BeatmapEvent, "beatmapEvent");
 		}
 
-		public void OnEnergyChange(float energy)
-		{
+		public void OnEnergyChange(float energy) {
 			statusManager.gameStatus.energy = energy;
 
 			statusManager.EmitStatusUpdate(ChangedProperties.BeatmapEvent, "energyChanged");
