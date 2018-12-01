@@ -6,103 +6,103 @@ using WebSocketSharp.Net;
 using WebSocketSharp.Server;
 
 namespace BeatSaberHTTPStatus {
-	public class HTTPServer {
-		private int ServerPort = 6557;
+    public class HTTPServer {
+        private int ServerPort = 6557;
 
-		private HttpServer server;
+        private HttpServer server;
 
-		private StatusManager statusManager;
+        private StatusManager statusManager;
 
-		public HTTPServer(StatusManager statusManager) {
-			this.statusManager = statusManager;
-		}
+        public HTTPServer(StatusManager statusManager) {
+            this.statusManager = statusManager;
+        }
 
-		public void InitServer() {
-			server = new HttpServer(ServerPort);
+        public void InitServer() {
+            server = new HttpServer(ServerPort);
 
-			server.OnGet += (sender, e) => {
-				OnHTTPGet(e);
-			};
+            server.OnGet += (sender, e) => {
+                OnHTTPGet(e);
+            };
 
-			server.AddWebSocketService<StatusBroadcastBehavior>("/socket", behavior => behavior.SetStatusManager(statusManager));
+            server.AddWebSocketService<StatusBroadcastBehavior>("/socket", behavior => behavior.SetStatusManager(statusManager));
 
-			Console.WriteLine("[HTTP Status] Starting HTTP server on port " + ServerPort);
-			server.Start();
-		}
+            Console.WriteLine("[HTTP Status] Starting HTTP server on port " + ServerPort);
+            server.Start();
+        }
 
-		public void StopServer() {
-			Console.WriteLine("[HTTP Status] Stopping HTTP server");
-			server.Stop();
-		}
+        public void StopServer() {
+            Console.WriteLine("[HTTP Status] Stopping HTTP server");
+            server.Stop();
+        }
 
-		public void OnHTTPGet(HttpRequestEventArgs e) {
-			var req = e.Request;
-			var res = e.Response;
+        public void OnHTTPGet(HttpRequestEventArgs e) {
+            var req = e.Request;
+            var res = e.Response;
 
-			if (req.RawUrl == "/status.json") {
-				res.StatusCode = 200;
-				res.ContentType = "application/json";
-				res.ContentEncoding = Encoding.UTF8;
+            if (req.RawUrl == "/status.json") {
+                res.StatusCode = 200;
+                res.ContentType = "application/json";
+                res.ContentEncoding = Encoding.UTF8;
 
-				res.WriteContent(Encoding.UTF8.GetBytes(statusManager.statusJSON.ToString()));
+                res.WriteContent(Encoding.UTF8.GetBytes(statusManager.statusJSON.ToString()));
 
-				return;
-			}
+                return;
+            }
 
-			res.StatusCode = 404;
-			res.WriteContent(new byte[] {});
-		}
-	}
+            res.StatusCode = 404;
+            res.WriteContent(new byte[] {});
+        }
+    }
 
-	public class StatusBroadcastBehavior : WebSocketBehavior {
-		private StatusManager statusManager;
+    public class StatusBroadcastBehavior : WebSocketBehavior {
+        private StatusManager statusManager;
 
-		public void SetStatusManager(StatusManager statusManager) {
-			this.statusManager = statusManager;
+        public void SetStatusManager(StatusManager statusManager) {
+            this.statusManager = statusManager;
 
-			statusManager.statusChange += OnStatusChange;
-		}
+            statusManager.statusChange += OnStatusChange;
+        }
 
-		protected override void OnOpen() {
-			JSONObject eventJSON = new JSONObject();
+        protected override void OnOpen() {
+            JSONObject eventJSON = new JSONObject();
 
-			eventJSON["event"] = "hello";
-			eventJSON["time"] = new JSONNumber(Plugin.GetCurrentTime());
-			eventJSON["status"] = statusManager.statusJSON;
+            eventJSON["event"] = "hello";
+            eventJSON["time"] = new JSONNumber(Plugin.GetCurrentTime());
+            eventJSON["status"] = statusManager.statusJSON;
 
-			Send(eventJSON.ToString());
-		}
+            Send(eventJSON.ToString());
+        }
 
-		protected override void OnClose(CloseEventArgs e) {
-			statusManager.statusChange -= OnStatusChange;
-		}
+        protected override void OnClose(CloseEventArgs e) {
+            statusManager.statusChange -= OnStatusChange;
+        }
 
-		public void OnStatusChange(StatusManager statusManager, ChangedProperties changedProps, string cause) {
-			JSONObject eventJSON = new JSONObject();
-			eventJSON["event"] = cause;
-			eventJSON["time"] = new JSONNumber(Plugin.GetCurrentTime());
+        public void OnStatusChange(StatusManager statusManager, ChangedProperties changedProps, string cause) {
+            JSONObject eventJSON = new JSONObject();
+            eventJSON["event"] = cause;
+            eventJSON["time"] = new JSONNumber(Plugin.GetCurrentTime());
 
-			if (changedProps.game && changedProps.beatmap && changedProps.performance && changedProps.mod) {
-				eventJSON["status"] = statusManager.statusJSON;
-			} else {
-				JSONObject status = new JSONObject();
-				eventJSON["status"] = status;
+            if (changedProps.game && changedProps.beatmap && changedProps.performance && changedProps.mod) {
+                eventJSON["status"] = statusManager.statusJSON;
+            } else {
+                JSONObject status = new JSONObject();
+                eventJSON["status"] = status;
 
-				if (changedProps.game) status["game"] = statusManager.statusJSON["game"];
-				if (changedProps.beatmap) status["beatmap"] = statusManager.statusJSON["beatmap"];
-				if (changedProps.performance) status["performance"] = statusManager.statusJSON["performance"];
-				if (changedProps.mod) status["mod"] = statusManager.statusJSON["mod"];
-			}
+                if (changedProps.game) status["game"] = statusManager.statusJSON["game"];
+                if (changedProps.beatmap) status["beatmap"] = statusManager.statusJSON["beatmap"];
+                if (changedProps.performance) status["performance"] = statusManager.statusJSON["performance"];
+                if (changedProps.mod) status["mod"] = statusManager.statusJSON["mod"];
+            }
 
-			if (changedProps.noteCut) {
-				eventJSON["noteCut"] = statusManager.noteCutJSON;
-			}
+            if (changedProps.noteCut) {
+                eventJSON["noteCut"] = statusManager.noteCutJSON;
+            }
 
-			if (changedProps.beatmapEvent) {
-				eventJSON["beatmapEvent"] = statusManager.beatmapEventJSON;
-			}
+            if (changedProps.beatmapEvent) {
+                eventJSON["beatmapEvent"] = statusManager.beatmapEventJSON;
+            }
 
-			Send(eventJSON.ToString());
-		}
-	}
+            Send(eventJSON.ToString());
+        }
+    }
 }
