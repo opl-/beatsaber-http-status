@@ -24,7 +24,13 @@ namespace BeatSaberHTTPStatus {
         public int maxScore = 0;
 
         // Performance
-        public int score = 0;
+        public int scoreBeforeMultiplier = 0;
+        public float scoreMultiplier = 1f;
+        public int score {
+            get {
+                return ScoreController.GetScoreForGameplayModifiersScoreMultiplier(scoreBeforeMultiplier, scoreMultiplier);
+            }
+        }
         public int currentMaxScore = 0;
         public string rank = "E";
         public int passedNotes = 0;
@@ -66,11 +72,41 @@ namespace BeatSaberHTTPStatus {
         public float cutDistanceToCenter = 0;
 
         // Mods
+        public GameplayModifiers gameModifiers = null;
+        public PlayerSpecificSettings playerModifiers = null;
         public string modObstacleType = "All";
-        public bool modNoEnergy = false;
-        public bool modMirror = false;
-        public bool modNoWalls = false;
-        public bool modNoBombs = false;
+        public bool modNoEnergy {
+            get {
+                if (gameModifiers == null)
+                    return false;
+                else
+                    return gameModifiers.noFail;
+            }
+        }
+        public bool modMirror {
+            get {
+                if (gameModifiers == null)
+                    return false;
+                else
+                    return playerModifiers.leftHanded; // Or is it swap colors?
+            }
+        }
+        public bool modNoWalls {
+            get {
+                if (gameModifiers == null)
+                    return false;
+                else
+                    return gameModifiers.noObstacles;
+            }
+        }
+        public bool modNoBombs {
+            get {
+                if (gameModifiers == null)
+                    return false;
+                else
+                    return gameModifiers.noBombs;
+            }
+        }
 
         // Beatmap event
         public int beatmapEventType = 0;
@@ -93,7 +129,7 @@ namespace BeatSaberHTTPStatus {
         }
 
         public void ResetPerformance() {
-            this.score = 0;
+            this.scoreBeforeMultiplier = 0;
             this.currentMaxScore = 0;
             this.rank = "E";
             this.passedNotes = 0;

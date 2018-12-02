@@ -28,6 +28,7 @@ namespace BeatSaberHTTPStatus {
         private GamePauseManager gamePauseManager;
         private ScoreController scoreController;
         private StandardLevelGameplayManager gameplayManager;
+        private GameplayModifiersModelSO gameModsSO;
 
         private AudioTimeSyncController _audioTimeSyncController;
         private BeatmapObjectCallbackController beatmapObjectCallbackController;
@@ -148,6 +149,10 @@ namespace BeatSaberHTTPStatus {
                     if (_audioTimeSyncController == null) {
                         Console.WriteLine("[HTTP Status] Couldn't find audioTimeSyncController");
                     }
+                    gameModsSO = Resources.FindObjectsOfTypeAll<GameplayModifiersModelSO>().FirstOrDefault();
+                    if (gameModsSO == null) {
+                        Console.WriteLine("[HTTP Status] Couldn't find GameplayModifiersModelSO");
+                    }
                     // Errors out - Non-static field requires target
                     //playerHeadAndObstacleInteraction = (PlayerHeadAndObstacleInteraction)playerHeadAndObstacleInteractionField.GetValue(scoreController);
                 } catch (Exception ex) {
@@ -226,12 +231,15 @@ namespace BeatSaberHTTPStatus {
                     _gameStatus.ResetPerformance();
 
                     // TODO: obstaclesOption can be All, FullHeightOnly or None. Reflect that?
-                    GameplayModifiers modifiers = mainSetupData.gameplayCoreSetupData.gameplayModifiers;
+                    _gameStatus.gameModifiers = mainSetupData.gameplayCoreSetupData.gameplayModifiers;
+                    _gameStatus.playerModifiers = mainSetupData.gameplayCoreSetupData.playerSpecificSettings;
+                    _gameStatus.scoreMultiplier = gameModsSO.GetTotalMultiplier(_gameStatus.gameModifiers);
+                    /*
                     //_gameStatus.modObstacles = modifiers.noObstacles;
                     _gameStatus.modNoWalls = modifiers.noObstacles;
                     _gameStatus.modNoBombs = modifiers.noBombs;
                     _gameStatus.modObstacleType = modifiers.enabledObstacleType.ToString();
-
+                    */
                     statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
                 } catch (Exception ex) {
                     Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
@@ -421,15 +429,23 @@ namespace BeatSaberHTTPStatus {
                 statusManager.EmitStatusUpdate(ChangedProperties.Performance, "noteMissed");
             }
         }
-
-        public void OnScoreDidChange(int score) {
-            statusManager.gameStatus.score = score;
+//GetRankForScore(int unmodifiedScore, int score, int maxPossibleUnmodifiedScore, GameplayModifiers gameplayModifiers, GameplayModifiersModelSO gameplayModifiersModel)
+//GetRankForScore(int unmodifiedScore, int score, int maxPossibleUnmodifiedScore, int maxPossibleScore)
+        public void OnScoreDidChange(int scoreBeforeMultiplier) {
+            // score is the unmodified score
+            statusManager.gameStatus.scoreBeforeMultiplier = scoreBeforeMultiplier;
             statusManager.gameStatus.currentMaxScore = ScoreController.MaxScoreForNumberOfNotes(statusManager.gameStatus.passedNotes);
-
-            // public static string LevelCompletionResults.GetRankName(LevelCompletionResults.Rank)
-            //LevelCompletionResults.Rank rank = (LevelCompletionResults.Rank) getRankForScoreMethod.Invoke(null, new object[] { score, statusManager.gameStatus.currentMaxScore });
-            //statusManager.gameStatus.rank = LevelCompletionResults.GetRankName(rank);
-
+            try {
+                //GetRankForScore(int unmodifiedScore, int score, int maxPossibleUnmodifiedScore, GameplayModifiers gameplayModifiers, GameplayModifiersModelSO gameplayModifiersModel)
+                //GetRankForScore(int unmodifiedScore, int score, int maxPossibleUnmodifiedScore, int maxPossibleScore)
+                // 
+                RankModel.Rank rank = RankModel.GetRankForScore(scoreBeforeMultiplier, statusManager.gameStatus.score,
+                    statusManager.gameStatus.currentMaxScore, 
+                    ScoreController.GetScoreForGameplayModifiersScoreMultiplier(statusManager.gameStatus.currentMaxScore, statusManager.gameStatus.scoreMultiplier));
+                statusManager.gameStatus.rank = RankModel.GetRankName(rank);
+            }catch (Exception ex) {
+                Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
+            }
             statusManager.EmitStatusUpdate(ChangedProperties.Performance, "scoreChanged");
         }
 

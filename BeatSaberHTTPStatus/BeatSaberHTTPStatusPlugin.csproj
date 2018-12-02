@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <Version>1.2.0</Version>
-    <BeatSaberVersion>0.11.2</BeatSaberVersion>
+    <BeatSaberVersion>0.12.0p1</BeatSaberVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -66,7 +66,9 @@
       <HintPath>..\libs\beatsaber\UnityEngine.ImageConversionModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="websocket-sharp, Version=1.0.2.7923, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL" />
+    <Reference Include="websocket-sharp">
+      <HintPath>H:\SteamApps\SteamApps\common\Beat Saber\Plugins\websocket-sharp.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ToCompile Include="**\*.cs" Exclude="bin\**\*;obj\**\*" />
@@ -90,9 +92,7 @@
   <Target Name="AfterBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <ItemGroup>
       <ZipFilesPlugins Include="$(OutDir)\BeatSaberHTTPStatus.dll" />
-    </ItemGroup>
-    <ItemGroup>
-      <ZipFilesLibs Include="$(OutDir)\websocket-sharp.dll" />
+      <ZipFilesPlugins Include="$(OutDir)\websocket-sharp.dll" />
     </ItemGroup>
     <Exec Command="git rev-parse HEAD &gt; $(IntermediateOutputPath)head" />
     <ReadLinesFromFile File="$(IntermediateOutputPath)head">
@@ -103,7 +103,6 @@
       <CommitHash>$(FullCommitHash.Substring(0, 8))</CommitHash>
     </PropertyGroup>
     <Copy SourceFiles="@(ZipFilesPlugins)" DestinationFolder="$(IntermediateOutputPath)\zip\Plugins" />
-    <Copy SourceFiles="@(ZipFilesLibs)" DestinationFolder="$(IntermediateOutputPath)\zip\Beat Saber_Data\Plugins" />
     <ZipDir ZipFileName="$(OutDir)\BeatSaberHTTPStatus-$(Version)-bs$(BeatSaberVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
   </Target>
   <!-- Source: https://stackoverflow.com/a/38127938 -->
