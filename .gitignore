@@ -1,3 +1,11 @@
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.csproj
+*.sln
+
 # Libs
 libs/beatsaber/*
 
