@@ -1,10 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1C0571AC-F8D6-4F9E-93B2-2F23892AE61E}</ProjectGuid>
+    <ProjectGuid>{1C0571AC-F8D6-4F9E-93b2-2F23892AE61E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BeatSaberHTTPStatus</RootNamespace>
@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <Version>1.2.0</Version>
-    <BeatSaberVersion>0.12.0p1</BeatSaberVersion>
+    <BeatSaberVersion>0.11.2</BeatSaberVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -66,9 +66,10 @@
       <HintPath>..\libs\beatsaber\UnityEngine.ImageConversionModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="websocket-sharp">
-      <HintPath>H:\SteamApps\SteamApps\common\Beat Saber\Plugins\websocket-sharp.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\libs\websocket-sharp\websocket-sharp\websocket-sharp.csproj">
+      <Project>{B357BAC7-529E-4D81-A0D2-71041B19C8DE}</Project>
+	  <Name>websocket-sharp</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ToCompile Include="**\*.cs" Exclude="bin\**\*;obj\**\*" />
@@ -92,17 +93,20 @@
   <Target Name="AfterBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <ItemGroup>
       <ZipFilesPlugins Include="$(OutDir)\BeatSaberHTTPStatus.dll" />
-      <ZipFilesPlugins Include="$(OutDir)\websocket-sharp.dll" />
+    </ItemGroup>
+    <ItemGroup>
+      <ZipFilesLibs Include="$(OutDir)\websocket-sharp.dll" />
     </ItemGroup>
     <Exec Command="git rev-parse HEAD &gt; $(IntermediateOutputPath)head" />
     <ReadLinesFromFile File="$(IntermediateOutputPath)head">
-      <Output TaskParameter="Lines" PropertyName="FullCommitHash" />
+        <Output TaskParameter="Lines" PropertyName="FullCommitHash" /> 
     </ReadLinesFromFile>
     <Delete Files="$(IntermediateOutputPath)head" />
     <PropertyGroup>
       <CommitHash>$(FullCommitHash.Substring(0, 8))</CommitHash>
     </PropertyGroup>
     <Copy SourceFiles="@(ZipFilesPlugins)" DestinationFolder="$(IntermediateOutputPath)\zip\Plugins" />
+    <Copy SourceFiles="@(ZipFilesLibs)" DestinationFolder="$(IntermediateOutputPath)\zip\Beat Saber_Data\Plugins" />
     <ZipDir ZipFileName="$(OutDir)\BeatSaberHTTPStatus-$(Version)-bs$(BeatSaberVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
   </Target>
   <!-- Source: https://stackoverflow.com/a/38127938 -->
@@ -142,16 +146,15 @@
       <Using Namespace="System" />
       <Using Namespace="System.IO" />
       <Using Namespace="System.Text.RegularExpressions" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
           Log.LogMessage(string.Format("Replacing {0} in {1}", MatchExpression, InputFilename));
           File.WriteAllText(
             OutputFilename,
             Regex.Replace(File.ReadAllText(InputFilename), MatchExpression, ReplacementText)
           );
-        ]]></Code>
+        ]]>
+      </Code>
     </Task>
   </UsingTask>
-  <PropertyGroup>
-    <PostBuildEvent>copy ".\BeatSaberHTTPStatus.dll" "H:\SteamApps\SteamApps\common\Beat Saber\Plugins"</PostBuildEvent>
-  </PropertyGroup>
 </Project>
