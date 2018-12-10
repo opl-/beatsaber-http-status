@@ -184,7 +184,7 @@ namespace BeatSaberHTTPStatus {
 
 				IDifficultyBeatmap diff = mainSetupData.difficultyBeatmap;
 				IBeatmapLevel level = diff.level;
-
+				// TODO: Figure out how to detect game mode.
 				_gameStatus.mode = "N/A"; //mainSetupData.gameplayCoreSetupData.gameplayModifiers.ToString();
 
 				_gameStatus.songName = level.songName;
