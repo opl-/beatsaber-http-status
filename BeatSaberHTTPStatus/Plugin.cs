@@ -52,11 +52,11 @@ namespace BeatSaberHTTPStatus {
 		private FieldInfo audioTimeSyncControllerField = typeof(GameSongController).GetField("_audioTimeSyncController", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
 		public string Name {
-			get { return "HTTP Status"; }
+			get {return "HTTP Status";}
 		}
 
 		public string Version {
-			get { return "$VERSION$"; } // Populated by MSBuild
+			get {return "$VERSION$";} // Populated by MSBuild
 		}
 
 		public void OnApplicationStart() {
@@ -119,16 +119,19 @@ namespace BeatSaberHTTPStatus {
 					Console.WriteLine("[HTTP Status] Couldn't find StandardLevelSceneSetupDataSO");
 					return;
 				}
+
 				gamePauseManager = Resources.FindObjectsOfTypeAll<GamePauseManager>().FirstOrDefault();
 				if (gamePauseManager == null) {
 					Console.WriteLine("[HTTP Status] Couldn't find GamePauseManager");
 					return;
 				}
+
 				scoreController = Resources.FindObjectsOfTypeAll<ScoreController>().FirstOrDefault();
 				if (scoreController == null) {
 					Console.WriteLine("[HTTP Status] Couldn't find ScoreController");
 					return;
 				}
+
 				gameplayManager = Resources.FindObjectsOfTypeAll<StandardLevelGameplayManager>().FirstOrDefault();
 				if (gameplayManager == null) {
 					Console.WriteLine("[HTTP Status] Couldn't find GameplayManager");
@@ -140,110 +143,101 @@ namespace BeatSaberHTTPStatus {
 					Console.WriteLine("[HTTP Status] Couldn't find BeatmapObjectCallbackController");
 					return;
 				}
-				try {
-					GameSongController _gameSongController = Resources.FindObjectsOfTypeAll<GameSongController>().FirstOrDefault();
-					if (_gameSongController == null) {
-						Console.WriteLine("[HTTP Status] Couldn't find gameSongController");
-					}
-					_audioTimeSyncController = Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
-					if (_audioTimeSyncController == null) {
-						Console.WriteLine("[HTTP Status] Couldn't find audioTimeSyncController");
-					}
-					gameModsSO = Resources.FindObjectsOfTypeAll<GameplayModifiersModelSO>().FirstOrDefault();
-					if (gameModsSO == null) {
-						Console.WriteLine("[HTTP Status] Couldn't find GameplayModifiersModelSO");
-					}
-					// Errors out - Non-static field requires target
-					//playerHeadAndObstacleInteraction = (PlayerHeadAndObstacleInteraction)playerHeadAndObstacleInteractionField.GetValue(scoreController);
-				} catch (Exception ex) {
-					Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
+
+				GameSongController _gameSongController = Resources.FindObjectsOfTypeAll<GameSongController>().FirstOrDefault();
+				if (_gameSongController == null) {
+					Console.WriteLine("[HTTP Status] Couldn't find gameSongController");
 				}
-				try {
-					// Register event listeners
-					// private GameEvent GamePauseManager#_gameDidPauseSignal
-					AddSubscriber(gamePauseManager, "_gameDidPauseSignal", OnGamePause);
-					// private GameEvent GamePauseManager#_gameDidResumeSignal
-					AddSubscriber(gamePauseManager, "_gameDidResumeSignal", OnGameResume);
-					// public ScoreController#noteWasCutEvent<NoteData, NoteCutInfo, int multiplier> // called after AfterCutScoreBuffer is created
-					scoreController.noteWasCutEvent += OnNoteWasCut;
-					// public ScoreController#noteWasMissedEvent<NoteData, int multiplier>
-					scoreController.noteWasMissedEvent += OnNoteWasMissed;
-					// public ScoreController#scoreDidChangeEvent<int> // score
-					scoreController.scoreDidChangeEvent += OnScoreDidChange;
-					// public ScoreController#comboDidChangeEvent<int> // combo
-					scoreController.comboDidChangeEvent += OnComboDidChange;
-					// public ScoreController#multiplierDidChangeEvent<int, float> // multiplier, progress [0..1]
-					scoreController.multiplierDidChangeEvent += OnMultiplierDidChange;
-					// private GameEvent GameplayManager#_levelFinishedSignal
-					AddSubscriber(gameplayManager, "_levelFinishedSignal", OnLevelFinished);
-					// private GameEvent GameplayManager#_levelFailedSignal
-					AddSubscriber(gameplayManager, "_levelFailedSignal", OnLevelFailed);
-					// public event Action<BeatmapEventData> BeatmapObjectCallbackController#beatmapEventDidTriggerEvent
-					beatmapObjectCallbackController.beatmapEventDidTriggerEvent += OnBeatmapEventDidTrigger;
-
-					IDifficultyBeatmap diff = mainSetupData.difficultyBeatmap;
-					IBeatmapLevel level = diff.level;
-
-					_gameStatus.mode = "N/A"; //mainSetupData.gameplayCoreSetupData.gameplayModifiers.ToString();
-
-					_gameStatus.songName = level.songName;
-					_gameStatus.songSubName = level.songSubName;
-					_gameStatus.songAuthorName = level.songAuthorName;
-					_gameStatus.songBPM = level.beatsPerMinute;
-					_gameStatus.songTimeOffset = (long)(level.songTimeOffset * 1000f);
-					_gameStatus.length = (long)(level.audioClip.length * 1000f);
-					_gameStatus.start = GetCurrentTime();
-					_gameStatus.paused = 0;
-					_gameStatus.difficulty = diff.difficulty.Name();
-					_gameStatus.notesCount = diff.beatmapData.notesCount;
-					_gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
-					_gameStatus.maxScore = ScoreController.MaxScoreForNumberOfNotes(diff.beatmapData.notesCount);
-
-					try {
-						// From https://support.unity3d.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
-						var texture = level.coverImage.texture;
-						var active = RenderTexture.active;
-						var temporary = RenderTexture.GetTemporary(
-							texture.width,
-							texture.height,
-							0,
-							RenderTextureFormat.Default,
-							RenderTextureReadWrite.Linear
-						);
-
-						Graphics.Blit(texture, temporary);
-						RenderTexture.active = temporary;
-
-						var cover = new Texture2D(texture.width, texture.height);
-						cover.ReadPixels(new Rect(0, 0, temporary.width, temporary.height), 0, 0);
-						cover.Apply();
-
-						RenderTexture.active = active;
-						RenderTexture.ReleaseTemporary(temporary);
-
-						_gameStatus.songCover = System.Convert.ToBase64String(
-							ImageConversion.EncodeToPNG(cover)
-						);
-					} catch {
-						_gameStatus.songCover = null;
-					}
-
-					_gameStatus.ResetPerformance();
-
-					// TODO: obstaclesOption can be All, FullHeightOnly or None. Reflect that?
-					_gameStatus.gameModifiers = mainSetupData.gameplayCoreSetupData.gameplayModifiers;
-					_gameStatus.playerModifiers = mainSetupData.gameplayCoreSetupData.playerSpecificSettings;
-					_gameStatus.scoreMultiplier = gameModsSO.GetTotalMultiplier(_gameStatus.gameModifiers);
-					/*
-                    //_gameStatus.modObstacles = modifiers.noObstacles;
-                    _gameStatus.modNoWalls = modifiers.noObstacles;
-                    _gameStatus.modNoBombs = modifiers.noBombs;
-                    _gameStatus.modObstacleType = modifiers.enabledObstacleType.ToString();
-                    */
-					statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
-				} catch (Exception ex) {
-					Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
+				_audioTimeSyncController = Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
+				if (_audioTimeSyncController == null) {
+					Console.WriteLine("[HTTP Status] Couldn't find audioTimeSyncController");
 				}
+				gameModsSO = Resources.FindObjectsOfTypeAll<GameplayModifiersModelSO>().FirstOrDefault();
+				if (gameModsSO == null) {
+					Console.WriteLine("[HTTP Status] Couldn't find GameplayModifiersModelSO");
+				}
+				// Errors out - Non-static field requires target
+				//playerHeadAndObstacleInteraction = (PlayerHeadAndObstacleInteraction)playerHeadAndObstacleInteractionField.GetValue(scoreController);
+
+
+				// Register event listeners
+				// private GameEvent GamePauseManager#_gameDidPauseSignal
+				AddSubscriber(gamePauseManager, "_gameDidPauseSignal", OnGamePause);
+				// private GameEvent GamePauseManager#_gameDidResumeSignal
+				AddSubscriber(gamePauseManager, "_gameDidResumeSignal", OnGameResume);
+				// public ScoreController#noteWasCutEvent<NoteData, NoteCutInfo, int multiplier> // called after AfterCutScoreBuffer is created
+				scoreController.noteWasCutEvent += OnNoteWasCut;
+				// public ScoreController#noteWasMissedEvent<NoteData, int multiplier>
+				scoreController.noteWasMissedEvent += OnNoteWasMissed;
+				// public ScoreController#scoreDidChangeEvent<int> // score
+				scoreController.scoreDidChangeEvent += OnScoreDidChange;
+				// public ScoreController#comboDidChangeEvent<int> // combo
+				scoreController.comboDidChangeEvent += OnComboDidChange;
+				// public ScoreController#multiplierDidChangeEvent<int, float> // multiplier, progress [0..1]
+				scoreController.multiplierDidChangeEvent += OnMultiplierDidChange;
+				// private GameEvent GameplayManager#_levelFinishedSignal
+				AddSubscriber(gameplayManager, "_levelFinishedSignal", OnLevelFinished);
+				// private GameEvent GameplayManager#_levelFailedSignal
+				AddSubscriber(gameplayManager, "_levelFailedSignal", OnLevelFailed);
+				// public event Action<BeatmapEventData> BeatmapObjectCallbackController#beatmapEventDidTriggerEvent
+				beatmapObjectCallbackController.beatmapEventDidTriggerEvent += OnBeatmapEventDidTrigger;
+
+				IDifficultyBeatmap diff = mainSetupData.difficultyBeatmap;
+				IBeatmapLevel level = diff.level;
+
+				_gameStatus.mode = "N/A"; //mainSetupData.gameplayCoreSetupData.gameplayModifiers.ToString();
+
+				_gameStatus.songName = level.songName;
+				_gameStatus.songSubName = level.songSubName;
+				_gameStatus.songAuthorName = level.songAuthorName;
+				_gameStatus.songBPM = level.beatsPerMinute;
+				_gameStatus.songTimeOffset = (long) (level.songTimeOffset * 1000f);
+				_gameStatus.length = (long) (level.audioClip.length * 1000f);
+				_gameStatus.start = GetCurrentTime();
+				_gameStatus.paused = 0;
+				_gameStatus.difficulty = diff.difficulty.Name();
+				_gameStatus.notesCount = diff.beatmapData.notesCount;
+				_gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
+				_gameStatus.maxScore = ScoreController.MaxScoreForNumberOfNotes(diff.beatmapData.notesCount);
+
+				try {
+					// From https://support.unity3d.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
+					var texture = level.coverImage.texture;
+					var active = RenderTexture.active;
+					var temporary = RenderTexture.GetTemporary(
+						texture.width,
+						texture.height,
+						0,
+						RenderTextureFormat.Default,
+						RenderTextureReadWrite.Linear
+					);
+
+					Graphics.Blit(texture, temporary);
+					RenderTexture.active = temporary;
+
+					var cover = new Texture2D(texture.width, texture.height);
+					cover.ReadPixels(new Rect(0, 0, temporary.width, temporary.height), 0, 0);
+					cover.Apply();
+
+					RenderTexture.active = active;
+					RenderTexture.ReleaseTemporary(temporary);
+
+					_gameStatus.songCover = System.Convert.ToBase64String(
+						ImageConversion.EncodeToPNG(cover)
+					);
+				} catch {
+					_gameStatus.songCover = null;
+				}
+
+				_gameStatus.ResetPerformance();
+
+				// TODO: obstaclesOption can be All, FullHeightOnly or None. Reflect that?
+				_gameStatus.gameModifiers = mainSetupData.gameplayCoreSetupData.gameplayModifiers;
+				_gameStatus.playerModifiers = mainSetupData.gameplayCoreSetupData.playerSpecificSettings;
+				_gameStatus.scoreMultiplier = gameModsSO.GetTotalMultiplier(_gameStatus.gameModifiers);
+
+				statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
+
 				/*
                 else
                 {
@@ -264,7 +258,7 @@ namespace BeatSaberHTTPStatus {
 			}
 
 			MethodInfo methodInfo = gameEventField.FieldType.GetMethod("Subscribe");
-			methodInfo.Invoke(gameEventField.GetValue(obj), new object[] { action });
+			methodInfo.Invoke(gameEventField.GetValue(obj), new object[] {action});
 		}
 
 		private void RemoveSubscriber(object obj, string field, Action action) {
@@ -277,22 +271,22 @@ namespace BeatSaberHTTPStatus {
 			}
 
 			MethodInfo methodInfo = gameEventField.FieldType.GetMethod("Unsubscribe");
-			methodInfo.Invoke(gameEventField.GetValue(obj), new object[] { action });
+			methodInfo.Invoke(gameEventField.GetValue(obj), new object[] {action});
 		}
 
 		public void OnUpdate() {
 			/*
-            bool currentHeadInObstacle = playerHeadAndObstacleInteraction.intersectingObstacles.Count > 0;
+			bool currentHeadInObstacle = playerHeadAndObstacleInteraction.intersectingObstacles.Count > 0;
 
-            if (!headInObstacle && currentHeadInObstacle) {
-                headInObstacle = true;
+			if (!headInObstacle && currentHeadInObstacle) {
+				headInObstacle = true;
 
-                statusManager.EmitStatusUpdate(ChangedProperties.Performance, "obstacleEnter");
-            } else if (headInObstacle && !currentHeadInObstacle) {
-                headInObstacle = false;
+				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "obstacleEnter");
+			} else if (headInObstacle && !currentHeadInObstacle) {
+				headInObstacle = false;
 
-                statusManager.EmitStatusUpdate(ChangedProperties.Performance, "obstacleExit");
-            }
+				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "obstacleExit");
+			}
             */
 		}
 
@@ -312,7 +306,7 @@ namespace BeatSaberHTTPStatus {
 					Console.WriteLine("[HTTP Status] Unable to aquire audioTimeSyncController, can't get resume time");
 
 				} else {
-					statusManager.gameStatus.start = GetCurrentTime() - (long)(_audioTimeSyncController.songTime * 1000f);
+					statusManager.gameStatus.start = GetCurrentTime() - (long) (_audioTimeSyncController.songTime * 1000f);
 					statusManager.gameStatus.paused = 0;
 				}
 
@@ -357,7 +351,7 @@ namespace BeatSaberHTTPStatus {
 				}
 			}
 
-			List<AfterCutScoreBuffer> list = (List<AfterCutScoreBuffer>)afterCutScoreBuffersField.GetValue(scoreController);
+			List<AfterCutScoreBuffer> list = (List<AfterCutScoreBuffer>) afterCutScoreBuffersField.GetValue(scoreController);
 
 			foreach (AfterCutScoreBuffer acsb in list) {
 				if (noteCutInfoField.GetValue(acsb) == noteCutInfo) {
@@ -373,11 +367,11 @@ namespace BeatSaberHTTPStatus {
 			int afterScore;
 
 			// public ScoreController.ScoreWithoutMultiplier(NoteCutInfo, SaberAfterCutSwingRatingCounter, out int beforeCutScore, out int afterCutScore)
-			ScoreController.ScoreWithoutMultiplier((NoteCutInfo)noteCutInfoField.GetValue(acsb), null, out score, out afterScore);
+			ScoreController.ScoreWithoutMultiplier((NoteCutInfo) noteCutInfoField.GetValue(acsb), null, out score, out afterScore);
 
-			int multiplier = (int)afterCutScoreBufferMultiplierField.GetValue(acsb);
+			int multiplier = (int) afterCutScoreBufferMultiplierField.GetValue(acsb);
 
-			afterScore = (int)afterCutScoreWithMultiplierField.GetValue(acsb) / multiplier;
+			afterScore = (int) afterCutScoreWithMultiplierField.GetValue(acsb) / multiplier;
 
 			statusManager.gameStatus.initialScore = score;
 			statusManager.gameStatus.finalScore = score + afterScore;
@@ -429,16 +423,12 @@ namespace BeatSaberHTTPStatus {
 				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "noteMissed");
 			}
 		}
-		//GetRankForScore(int unmodifiedScore, int score, int maxPossibleUnmodifiedScore, GameplayModifiers gameplayModifiers, GameplayModifiersModelSO gameplayModifiersModel)
-		//GetRankForScore(int unmodifiedScore, int score, int maxPossibleUnmodifiedScore, int maxPossibleScore)
+
 		public void OnScoreDidChange(int scoreBeforeMultiplier) {
 			// score is the unmodified score
 			statusManager.gameStatus.scoreBeforeMultiplier = scoreBeforeMultiplier;
 			statusManager.gameStatus.currentMaxScore = ScoreController.MaxScoreForNumberOfNotes(statusManager.gameStatus.passedNotes);
 			try {
-				//GetRankForScore(int unmodifiedScore, int score, int maxPossibleUnmodifiedScore, GameplayModifiers gameplayModifiers, GameplayModifiersModelSO gameplayModifiersModel)
-				//GetRankForScore(int unmodifiedScore, int score, int maxPossibleUnmodifiedScore, int maxPossibleScore)
-				// 
 				RankModel.Rank rank = RankModel.GetRankForScore(scoreBeforeMultiplier, statusManager.gameStatus.score,
 					statusManager.gameStatus.currentMaxScore,
 					ScoreController.GetScoreForGameplayModifiersScoreMultiplier(statusManager.gameStatus.currentMaxScore, statusManager.gameStatus.scoreMultiplier));
@@ -469,18 +459,18 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public void OnBeatmapEventDidTrigger(BeatmapEventData beatmapEventData) {
-			statusManager.gameStatus.beatmapEventType = (int)beatmapEventData.type;
+			statusManager.gameStatus.beatmapEventType = (int) beatmapEventData.type;
 			statusManager.gameStatus.beatmapEventValue = beatmapEventData.value;
 
 			statusManager.EmitStatusUpdate(ChangedProperties.BeatmapEvent, "beatmapEvent");
 		}
 
 		public static long GetCurrentTime() {
-			return (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).Ticks / TimeSpan.TicksPerMillisecond);
+			return (long) (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).Ticks / TimeSpan.TicksPerMillisecond);
 		}
 
-		public void OnLevelWasLoaded(int level) { }
-		public void OnLevelWasInitialized(int level) { }
-		public void OnFixedUpdate() { }
+		public void OnLevelWasLoaded(int level) {}
+		public void OnLevelWasInitialized(int level) {}
+		public void OnFixedUpdate() {}
 	}
 }

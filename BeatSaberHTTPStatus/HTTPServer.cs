@@ -50,7 +50,7 @@ namespace BeatSaberHTTPStatus {
 			}
 
 			res.StatusCode = 404;
-			res.WriteContent(new byte[] { });
+			res.WriteContent(new byte[] {});
 		}
 	}
 
