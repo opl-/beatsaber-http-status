@@ -26,12 +26,12 @@ namespace BeatSaberHTTPStatus {
 
 			server.AddWebSocketService<StatusBroadcastBehavior>("/socket", behavior => behavior.SetStatusManager(statusManager));
 
-			Console.WriteLine("[HTTP Status] Starting HTTP server on port " + ServerPort);
+			BeatSaberHTTPStatus.Plugin.PluginLog("Starting HTTP server on port " + ServerPort);
 			server.Start();
 		}
 
 		public void StopServer() {
-			Console.WriteLine("[HTTP Status] Stopping HTTP server");
+			BeatSaberHTTPStatus.Plugin.PluginLog("Stopping HTTP server");
 			server.Stop();
 		}
 
@@ -91,7 +91,10 @@ namespace BeatSaberHTTPStatus {
 				if (changedProps.game) status["game"] = statusManager.statusJSON["game"];
 				if (changedProps.beatmap) status["beatmap"] = statusManager.statusJSON["beatmap"];
 				if (changedProps.performance) status["performance"] = statusManager.statusJSON["performance"];
-				if (changedProps.mod) status["mod"] = statusManager.statusJSON["mod"];
+				if (changedProps.mod) {
+					status["mod"] = statusManager.statusJSON["mod"];
+					status["playerSettings"] = statusManager.statusJSON["playerSettings"];
+				}
 			}
 
 			if (changedProps.noteCut) {

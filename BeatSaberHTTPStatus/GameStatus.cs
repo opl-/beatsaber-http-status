@@ -5,7 +5,8 @@ namespace BeatSaberHTTPStatus {
 	public class GameStatus {
 		public string updateCause;
 
-		public string scene = null;
+		public string scene = "Menu";
+		public bool partyMode = false;
 		public string mode = null;
 
 		// Beatmap
@@ -20,8 +21,10 @@ namespace BeatSaberHTTPStatus {
 		public long paused = 0;
 		public string difficulty = null;
 		public int notesCount = 0;
+		public int bombsCount = 0;
 		public int obstaclesCount = 0;
 		public int maxScore = 0;
+		public string maxRank = "E";
 
 		// Performance
 		public int score = 0;
@@ -37,11 +40,14 @@ namespace BeatSaberHTTPStatus {
 		public int maxCombo = 0;
 		public int multiplier = 0;
 		public float multiplierProgress = 0;
+		public int batteryEnergy = 1;
 
 		// Note cut
 		public int noteID = -1;
 		public string noteType = null;
 		public string noteCutDirection = null;
+		public int noteLine = 0;
+		public int noteLayer = 0;
 		public bool speedOK = false;
 		public bool directionOK = false;
 		public bool saberTypeOK = false;
@@ -66,9 +72,28 @@ namespace BeatSaberHTTPStatus {
 		public float cutDistanceToCenter = 0;
 
 		// Mods
-		public string modObstacles = "None";
-		public bool modNoEnergy = false;
-		public bool modMirror = false;
+		public float modifierMultiplier = 1f;
+		public string modObstacles = "All";
+		public bool modInstaFail = false;
+		public bool modNoFail = false;
+		public bool modBatteryEnergy = false;
+		public int batteryLives = 1;
+		public bool modDisappearingArrows = false;
+		public bool modNoBombs = false;
+		public string modSongSpeed = "Normal";
+		public float songSpeedMultiplier = 1f;
+		public bool modFailOnSaberClash = false;
+		public bool modStrictAngles = false;
+
+		// Player settings
+		public bool staticLights = false;
+		public bool leftHanded = false;
+		public bool swapColors = false;
+		public float playerHeight = 1.7f;
+		public bool disableSFX = false;
+		public bool reduceDebris = false;
+		public bool noHUD = false;
+		public bool advancedHUD = false;
 
 		// Beatmap event
 		public int beatmapEventType = 0;
@@ -88,6 +113,7 @@ namespace BeatSaberHTTPStatus {
 			this.notesCount = 0;
 			this.obstaclesCount = 0;
 			this.maxScore = 0;
+			this.maxRank = "E";
 		}
 
 		public void ResetPerformance() {

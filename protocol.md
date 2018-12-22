@@ -32,8 +32,10 @@ EventObject = {
 ```js
 StatusObject = {
 	"game": {
-		"scene": String, // See [Scenes](#scene-string)
-		"mode": null | "SoloStandard" | "SoloOneSaber" | "SoloNoArrows" | "PartyStandard",
+		"pluginVersion": String, // Currently running version of the plugin
+		"gameVersion": String, // Version of the game the current plugin version is targetting
+		"scene": "Menu" | "Song", // Indicates player's current activity
+		"mode": null | "SoloStandard" | "SoloOneSaber" | "SoloNoArrows" | "PartyStandard" | "PartyOneSaber" | "PartyNoArrows",
 	},
 	"beatmap": null | {
 		"songName": String, // Song name
@@ -41,33 +43,55 @@ StatusObject = {
 		"songAuthorName": String, // Song author name
 		"songCover": null | String, // Base64 encoded PNG image of the song cover
 		"songBPM": Number, // Song Beats Per Minute
-		"songTimeOffset": Integer, // Time in millis of where in the song the beatmap starts
-		"start": null | Integer, // UNIX timestamp in millis of when the map was started. Changes if the game is resumed.
+		"songTimeOffset": Integer, // Time in millis of where in the song the beatmap starts. Adjusted for song speed multiplier.
+		"start": null | Integer, // UNIX timestamp in millis of when the map was started. Changes if the game is resumed. Might be altered by practice settings.
 		"paused": null | Integer, // If game is paused, UNIX timestamp in millis of when the map was paused. null otherwise.
-		"length": Integer, // Length of map in millis
+		"length": Integer, // Length of map in millis. Adjusted for song speed multiplier.
 		"difficulty": "Easy" | "Normal" | "Hard" | "Expert" | "ExpertPlus", // Beatmap difficulty
 		"notesCount": Integer, // Map cube count
-		"obstaclesCount": Integer, // Map obstacle count
-		"maxScore": Integer, // Max score obtainable on the map
+		"bombsCount": Integer, // Map bomb count. Set even with No Bombs modifier enabled.
+		"obstaclesCount": Integer, // Map obstacle count. Set even with No Obstacles modifier enabled.
+		"maxScore": Integer, // Max score obtainable on the map with modifier multiplier
+		"maxRank": "SSS" | "SS" | "S" | "A" | "B" | "C" | "D" | "E", // Max rank obtainable using current modifiers
 	},
 	"performance": null | {
-		"score": Integer, // Current score
-		"currentMaxScore": Integer, // Maximum score achievable at current passed notes
+		"score": Integer, // Current score with modifier multiplier
+		"currentMaxScore": Integer, // Maximum score with modifier multiplier achievable at current passed notes
 		"rank": "SSS" | "SS" | "S" | "A" | "B" | "C" | "D" | "E", // Current rank
 		"passedNotes": Integer, // Amount of hit or missed cubes
 		"hitNotes": Integer, // Amount of hit cubes
 		"missedNotes": Integer, // Amount of missed cubes
-		"passedBombs": Integer, // Amount of Hit or missed bombs
+		"passedBombs": Integer, // Amount of hit or missed bombs
 		"hitBombs": Integer, // Amount of hit bombs
 		"combo": Integer, // Current combo
 		"maxCombo": Integer, // Max obtained combo
-		"multiplier": Integer, // Current multiplier [1, 2, 4, 8]
-		"multiplierProgress": Number, // Current multiplier progress [0..1)
+		"multiplier": Integer, // Current combo multiplier {1, 2, 4, 8}
+		"multiplierProgress": Number, // Current combo multiplier progress [0..1)
+		"batteryEnergy": Integer, // Current amount of battery lives left. null if Battery Energy and Insta Fail are disabled.
 	},
 	"mod": {
+		"multiplier": Number, // Current score multiplier for gameplay modifiers
 		"obstacles": false | "FullHeightOnly" | "All", // No Obstacles (FullHeightOnly is not possible from UI)
-		"noEnergy": Boolean, // No Fail
-		"mirror": Boolean, // Mirror
+		"instaFail": Boolean, // Insta Fail
+		"noFail": Boolean, // No Fail
+		"batteryEnergy": Boolean, // Battery Energy
+		"batteryLives": null | Integer, // Amount of battery energy available. 4 with Battery Energy, 1 with Insta Fail, null with neither enabled.
+		"disappearingArrows": Boolean, // Disappearing Arrows
+		"noBombs": Boolean, // No Bombs
+		"songSpeed": "Normal" | "Slower" | "Faster", // Song Speed (Slower = 85%, Faster = 120%)
+		"songSpeedMultiplier": Number, // Song speed multiplier. Might be altered by practice settings.
+		"failOnSaberClash": Boolean, // Fail on Saber Clash (Hidden)
+		"strictAngles": Boolean, // Strict Angles (Hidden. Requires more precise cut direction; changes max deviation from 60deg to 15deg)
+	},
+	"playerSettings": {
+		"staticLights": Boolean, // Static lights
+		"leftHanded": Boolean, // Left handed
+		"swapColors": Boolean, // Swap saber colors
+		"playerHeight": Number, // Player's height
+		"disableSFX": Boolean, // Disable sound effects
+		"reduceDebris": Boolean, // Reduce debris
+		"noHUD": Boolean, // No text and HUDs
+		"advancedHUD": Boolean, // Advanced HUD
 	},
 }
 ```
@@ -79,13 +103,15 @@ NoteCutObject = {
 	"noteID": Integer, // ID of the note
 	"noteType": "NoteA" | "NoteB" | "GhostNote" | "Bomb", // Type of note
 	"noteCutDirection": "Up" | "Down" | "Left" | "Right" | "UpLeft" | "UpRight" | "DownLeft" | "DownRight" | "Any" | "None", // Direction the note is supposed to be cut in
+	"noteLine": Integer, // The horizontal position of the note, from left to right [0..3]
+	"noteLayer": Integer, // The vertical position of the note, from bottom to top [0..2]
 	"speedOK": Boolean, // Cut speed was fast enough
 	"directionOK": null | Boolean, // Note was cut in the correct direction. null for bombs.
 	"saberTypeOK": null | Boolean, // Note was cut with the correct saber. null for bombs.
 	"wasCutTooSoon": Boolean, // Note was cut too early
-	"initalScore": null | Integer, // Score without multiplier for the cut. Doesn't include the score for keeping angle after cut. null for bombs.
-	"finalScore": null | Integer, // Score without multiplier for the entire cut, including keeping angle after cut. Available in [`noteFullyCut` event](#notefullycut-event). null for bombs.
-	"multiplier": Integer, // Multiplier at the time of cut
+	"initalScore": null | Integer, // Score without multipliers for the cut. Doesn't include the score for swinging after cut. null for bombs.
+	"finalScore": null | Integer, // Score without multipliers for the entire cut, including score for swinging after cut. Available in [`noteFullyCut` event](#notefullycut-event). null for bombs.
+	"multiplier": Integer, // Combo multiplier at the time of cut
 	"saberSpeed": Number, // Speed of the saber when the note was cut
 	"saberDir": [ // Direction the saber was moving in when the note was cut
 		Number, // X value
@@ -121,17 +147,6 @@ BeatmapEvent = {
 }
 ```
 
-### Scene string
-
-| Scene                 | Event       | Description
-| --------------------- | ----------- | -----------
-| `Init`                | `scene`     | Game start
-| `Menu`                | `menu`      | Main menu (song selection, settings, beatmap result)
-| `HealthWarning`       | `scene`     | Reminder for the player to take breaks
-| `GameCore`            | `scene`     | Unknown. Activated after song selection.
-| `StandardLevelLoader` | `scene`     | Loading environments? Loaded after `GameCore`
-| `StandardLevel`       | `songStart` | Playing a beatmap
-
 ## Events
 
 Events are broadcasted over the WebSocket. For message format, see [Event object](#event-object).
@@ -139,12 +154,6 @@ Events are broadcasted over the WebSocket. For message format, see [Event object
 ### `hello` event
 
 Sent when the client connects to the WebSocket server.
-
-Contains the full [Status object](#status-object).
-
-### `scene` event
-
-Fired when a scene other than `Menu` and `StandardLevel` is loaded. `Menu` fires the [`menu` event](#menu-event) and `StandardLevel` fires the [`songStart` event](#songstart-event).
 
 Contains the full [Status object](#status-object).
 
