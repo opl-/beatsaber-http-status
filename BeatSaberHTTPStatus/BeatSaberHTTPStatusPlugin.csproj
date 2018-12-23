@@ -12,7 +12,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
-    <Version>1.3.0</Version>
+    <Version>1.3.1</Version>
     <BeatSaberVersion>0.12.2</BeatSaberVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -107,7 +107,7 @@
       <CommitHash>$(FullCommitHash.Substring(0, 8))</CommitHash>
     </PropertyGroup>
     <Copy SourceFiles="@(ZipFilesPlugins)" DestinationFolder="$(IntermediateOutputPath)\zip\Plugins" />
-    <Copy SourceFiles="@(ZipFilesLibs)" DestinationFolder="$(IntermediateOutputPath)\zip\Beat Saber_Data\Plugins" />
+    <Copy SourceFiles="@(ZipFilesLibs)" DestinationFolder="$(IntermediateOutputPath)\zip\Beat Saber_Data\Managed" />
     <ZipDir ZipFileName="$(OutDir)\BeatSaberHTTPStatus-$(Version)-bs$(BeatSaberVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
   </Target>
   <!-- Source: https://stackoverflow.com/a/38127938 -->
