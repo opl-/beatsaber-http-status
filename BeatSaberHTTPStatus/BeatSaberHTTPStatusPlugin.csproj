@@ -75,9 +75,10 @@
     <ToCompile Include="**\*.cs" Exclude="bin\**\*;obj\**\*" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- Clean output directory before build -->
-  <Target Name="BeforeBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <!-- Clean output directories before build -->
+  <Target Name="CleanOutputDirs" BeforeTargets="BeforeBuild">
     <RemoveDir Directories="$(OutDir)" />
+    <RemoveDir Directories="$(IntermediateOutputPath)" />
   </Target>
   <!-- Replace strings in source files -->
   <Target Name="BeforeBuild">
@@ -91,7 +92,7 @@
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)Plugin.cs" OutputFilename="$(IntermediateSourcePath)Plugin.cs" MatchExpression="$BS_VERSION$" ReplacementText="$(BeatSaberVersion)" />
   </Target>
   <!-- Package built DLLs into a zip -->
-  <Target Name="AfterBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <Target Name="CreateZip" AfterTargets="AfterBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <ItemGroup>
       <ZipFilesPlugins Include="$(OutDir)\BeatSaberHTTPStatus.dll" />
     </ItemGroup>
