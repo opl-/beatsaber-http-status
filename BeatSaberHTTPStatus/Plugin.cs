@@ -32,6 +32,7 @@ namespace BeatSaberHTTPStatus {
 		private BeatmapObjectCallbackController beatmapObjectCallbackController;
 		private PlayerHeadAndObstacleInteraction playerHeadAndObstacleInteraction;
 		private GameEnergyCounter gameEnergyCounter;
+		private Dictionary<NoteCutInfo, NoteData> noteCutMapping = new Dictionary<NoteCutInfo, NoteData>();
 
 		/// protected NoteCutInfo AfterCutScoreBuffer._noteCutInfo
 		private FieldInfo noteCutInfoField = typeof(AfterCutScoreBuffer).GetField("_noteCutInfo", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
@@ -343,6 +344,8 @@ namespace BeatSaberHTTPStatus {
 			foreach (AfterCutScoreBuffer acsb in list) {
 				if (noteCutInfoField.GetValue(acsb) == noteCutInfo) {
 					// public AfterCutScoreBuffer#didFinishEvent<AfterCutScoreBuffer>
+					noteCutMapping.Add(noteCutInfo, noteData);
+
 					acsb.didFinishEvent += OnNoteWasFullyCut;
 					break;
 				}
@@ -354,8 +357,15 @@ namespace BeatSaberHTTPStatus {
 			int afterScore;
 			int cutDistanceScore;
 
+			NoteCutInfo noteCutInfo = (NoteCutInfo) noteCutInfoField.GetValue(acsb);
+			NoteData noteData = noteCutMapping[noteCutInfo];
+
+			noteCutMapping.Remove(noteCutInfo);
+
+			SetNoteCutStatus(noteData, noteCutInfo);
+
 			// public ScoreController.ScoreWithoutMultiplier(NoteCutInfo, SaberAfterCutSwingRatingCounter, out int beforeCutScore, out int afterCutScore, out int cutDistanceScore)
-			ScoreController.ScoreWithoutMultiplier((NoteCutInfo) noteCutInfoField.GetValue(acsb), null, out score, out afterScore, out cutDistanceScore);
+			ScoreController.ScoreWithoutMultiplier(noteCutInfo, null, out score, out afterScore, out cutDistanceScore);
 
 			int multiplier = (int) afterCutScoreBufferMultiplierField.GetValue(acsb);
 
