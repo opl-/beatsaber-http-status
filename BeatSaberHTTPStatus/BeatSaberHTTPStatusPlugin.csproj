@@ -12,7 +12,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
-    <Version>1.3.1</Version>
+    <Version>1.3.2</Version>
     <BeatSaberVersion>0.12.2</BeatSaberVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
