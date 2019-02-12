@@ -112,6 +112,9 @@ namespace BeatSaberHTTPStatus {
 
 				gameStatus.ResetPerformance();
 
+				// Release references for AfterCutScoreBuffers that don't resolve due to player leaving the map before finishing. 
+				noteCutMapping.Clear();
+
 				statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "menu");
 			} else if (newScene.name == "GameCore") {
 				// In game
