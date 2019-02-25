@@ -39,7 +39,7 @@ StatusObject = {
 	},
 	"beatmap": null | {
 		"songName": String, // Song name
-		"songNubName": String, // Song sub name
+		"songSubName": String, // Song sub name
 		"songAuthorName": String, // Song author name
 		"songCover": null | String, // Base64 encoded PNG image of the song cover
 		"songBPM": Number, // Song Beats Per Minute
