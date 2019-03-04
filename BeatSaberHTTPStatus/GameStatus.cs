@@ -15,6 +15,7 @@ namespace BeatSaberHTTPStatus {
 		public string songAuthorName = null;
 		public string songCover = null;
 		public float songBPM;
+		public float songNJS;
 		public long songTimeOffset = 0;
 		public long length = 0;
 		public long start = 0;
@@ -105,6 +106,7 @@ namespace BeatSaberHTTPStatus {
 			this.songAuthorName = null;
 			this.songCover = null;
 			this.songBPM = 0f;
+			this.songNJS = 0f;
 			this.songTimeOffset = 0;
 			this.length = 0;
 			this.start = 0;
