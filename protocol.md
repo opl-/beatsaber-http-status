@@ -43,6 +43,7 @@ StatusObject = {
 		"songAuthorName": String, // Song author name
 		"songCover": null | String, // Base64 encoded PNG image of the song cover
 		"songBPM": Number, // Song Beats Per Minute
+		"noteJumpSpeed": Number, // Song note jump movement speed, how fast the notes move towards the player.
 		"songTimeOffset": Integer, // Time in millis of where in the song the beatmap starts. Adjusted for song speed multiplier.
 		"start": null | Integer, // UNIX timestamp in millis of when the map was started. Changes if the game is resumed. Might be altered by practice settings.
 		"paused": null | Integer, // If game is paused, UNIX timestamp in millis of when the map was paused. null otherwise.
