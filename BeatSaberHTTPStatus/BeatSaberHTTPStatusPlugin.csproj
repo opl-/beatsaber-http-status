@@ -67,6 +67,10 @@
       <HintPath>$(GameDirPath)Beat Saber_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="BS_Utils, Culture=neutral">
+      <HintPath>$(GameDirPath)Plugins\BS_Utils.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <ProjectReference Include="..\libs\websocket-sharp\websocket-sharp\websocket-sharp.csproj">
       <Project>{B357BAC7-529E-4D81-A0D2-71041B19C8DE}</Project>
       <Name>websocket-sharp</Name>
