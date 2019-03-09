@@ -14,6 +14,7 @@
     <TargetFrameworkProfile />
     <Version>1.3.2</Version>
     <BeatSaberVersion>0.12.2</BeatSaberVersion>
+    <GameDirPath>..\libs\beatsaber\</GameDirPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -39,11 +40,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\libs\beatsaber\Assembly-CSharp.dll</HintPath>
+      <HintPath>$(GameDirPath)Beat Saber_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="IllusionPlugin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\libs\beatsaber\IllusionPlugin.dll</HintPath>
+      <HintPath>$(GameDirPath)Beat Saber_Data\Managed\IllusionPlugin.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -51,19 +52,19 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\libs\beatsaber\UnityEngine.dll</HintPath>
+      <HintPath>$(GameDirPath)Beat Saber_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\libs\beatsaber\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(GameDirPath)Beat Saber_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\libs\beatsaber\UnityEngine.AudioModule.dll</HintPath>
+      <HintPath>$(GameDirPath)Beat Saber_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\libs\beatsaber\UnityEngine.ImageConversionModule.dll</HintPath>
+      <HintPath>$(GameDirPath)Beat Saber_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <ProjectReference Include="..\libs\websocket-sharp\websocket-sharp\websocket-sharp.csproj">

@@ -1,5 +1,6 @@
 # Libs
 libs/beatsaber/*
+BeatSaberHTTPStatus/BeatSaberHTTPStatusPlugin.csproj.user
 
 # C#
 bin
