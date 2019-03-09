@@ -108,6 +108,8 @@ namespace BeatSaberHTTPStatus {
 				// Menu
 				gameStatus.scene = "Menu";
 
+				Gamemode.Init();
+
 				// TODO: get the current song, mode and mods while in menu
 				gameStatus.ResetMapInfo();
 
