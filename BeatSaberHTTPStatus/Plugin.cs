@@ -5,6 +5,7 @@ using System.Reflection;
 using IllusionPlugin;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using BS_Utils.Gameplay;
 
 // Interesting props and methods:
 // protected const int ScoreController.kMaxCutScore // 110
@@ -156,8 +157,8 @@ namespace BeatSaberHTTPStatus {
 				IDifficultyBeatmap diff = levelSceneSetupData.difficultyBeatmap;
 				IBeatmapLevel level = diff.level;
 
-				// TODO: Figure out how to detect game mode.
-				// gameStatus.mode = levelSceneSetupData.gameplayCoreSetupData.gameplayModifiers.ToString();
+				gameStatus.partyMode = Gamemode.IsPartyActive;
+				gameStatus.mode = Gamemode.GameMode;
 
 				GameplayModifiers gameplayModifiers = levelSceneSetupData.gameplayCoreSetupData.gameplayModifiers;
 				PlayerSpecificSettings playerSettings = levelSceneSetupData.gameplayCoreSetupData.playerSpecificSettings;
