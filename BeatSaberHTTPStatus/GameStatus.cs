@@ -134,6 +134,7 @@ namespace BeatSaberHTTPStatus {
 			this.maxCombo = 0;
 			this.multiplier = 0;
 			this.multiplierProgress = 0;
+			this.batteryEnergy = 1;
 		}
 
 		public void ResetNoteCut() {

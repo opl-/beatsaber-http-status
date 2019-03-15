@@ -69,7 +69,7 @@ StatusObject = {
 		"maxCombo": Integer, // Max obtained combo
 		"multiplier": Integer, // Current combo multiplier {1, 2, 4, 8}
 		"multiplierProgress": Number, // Current combo multiplier progress [0..1)
-		"batteryEnergy": Integer, // Current amount of battery lives left. null if Battery Energy and Insta Fail are disabled.
+		"batteryEnergy": null | Integer, // Current amount of battery lives left. null if Battery Energy and Insta Fail are disabled.
 	},
 	"mod": {
 		"multiplier": Number, // Current score multiplier for gameplay modifiers
