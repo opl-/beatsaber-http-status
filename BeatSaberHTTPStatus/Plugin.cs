@@ -46,7 +46,7 @@ namespace BeatSaberHTTPStatus {
 		/// private static LevelCompletionResults.Rank LevelCompletionResults.GetRankForScore(int score, int maxPossibleScore)
 		private MethodInfo getRankForScoreMethod = typeof(LevelCompletionResults).GetMethod("GetRankForScore", BindingFlags.NonPublic | BindingFlags.Static);
 
-		public static readonly string PluginVersion = "$VERSION$"; // Populated by MSBuild
+		public static readonly string PluginVersion = "$SEMVER_VERSION$"; // Populated by MSBuild
 		public static readonly string GameVersion = "$BS_VERSION$"; // Populated by MSBuild
 
 		public string Name {
