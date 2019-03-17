@@ -79,6 +79,7 @@ namespace BeatSaberHTTPStatus {
 			beatmapJSON["songName"] = stringOrNull(gameStatus.songName);
 			beatmapJSON["songSubName"] = stringOrNull(gameStatus.songSubName);
 			beatmapJSON["songAuthorName"] = stringOrNull(gameStatus.songAuthorName);
+			beatmapJSON["levelAuthorName"] = stringOrNull(gameStatus.levelAuthorName);
 			beatmapJSON["songCover"] = String.IsNullOrEmpty(gameStatus.songCover) ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONString(gameStatus.songCover);
 			beatmapJSON["songBPM"] = gameStatus.songBPM;
 			beatmapJSON["noteJumpSpeed"] = gameStatus.noteJumpSpeed;
@@ -92,6 +93,7 @@ namespace BeatSaberHTTPStatus {
 			beatmapJSON["obstaclesCount"] = gameStatus.obstaclesCount;
 			beatmapJSON["maxScore"] = gameStatus.maxScore;
 			beatmapJSON["maxRank"] = gameStatus.maxRank;
+			beatmapJSON["environmentName"] = gameStatus.environmentName;
 		}
 
 		private void UpdatePerformanceJSON() {
@@ -166,8 +168,11 @@ namespace BeatSaberHTTPStatus {
 			modJSON["noBombs"] = gameStatus.modNoBombs;
 			modJSON["songSpeed"] = gameStatus.modSongSpeed;
 			modJSON["songSpeedMultiplier"] = gameStatus.songSpeedMultiplier;
+			modJSON["noArrows"] = gameStatus.modNoArrows;
+			modJSON["ghostNotes"] = gameStatus.modGhostNotes;
 			modJSON["failOnSaberClash"] = gameStatus.modFailOnSaberClash;
 			modJSON["strictAngles"] = gameStatus.modStrictAngles;
+			modJSON["fastNotes"] = gameStatus.modFastNotes;
 		}
 
 		private void UpdatePlayerSettingsJSON() {

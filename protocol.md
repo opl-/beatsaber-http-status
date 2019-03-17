@@ -41,6 +41,7 @@ StatusObject = {
 		"songName": String, // Song name
 		"songSubName": String, // Song sub name
 		"songAuthorName": String, // Song author name
+		"levelAuthorName": String, // Beatmap author name
 		"songCover": null | String, // Base64 encoded PNG image of the song cover
 		"songHash": String, // Unique beatmap identifier. At most 32 characters long. Same for all difficulties.
 		"songBPM": Number, // Song Beats Per Minute
@@ -55,6 +56,7 @@ StatusObject = {
 		"obstaclesCount": Integer, // Map obstacle count. Set even with No Obstacles modifier enabled.
 		"maxScore": Integer, // Max score obtainable on the map with modifier multiplier
 		"maxRank": "SSS" | "SS" | "S" | "A" | "B" | "C" | "D" | "E", // Max rank obtainable using current modifiers
+		"environmentName": String, // Name of the environment this beatmap requested // TODO: list available names
 	},
 	"performance": null | {
 		"score": Integer, // Current score with modifier multiplier
@@ -82,8 +84,11 @@ StatusObject = {
 		"noBombs": Boolean, // No Bombs
 		"songSpeed": "Normal" | "Slower" | "Faster", // Song Speed (Slower = 85%, Faster = 120%)
 		"songSpeedMultiplier": Number, // Song speed multiplier. Might be altered by practice settings.
+		"noArrows": Boolean, // No Arrows
+		"ghostNotes": Boolean, // Ghost Notes
 		"failOnSaberClash": Boolean, // Fail on Saber Clash (Hidden)
 		"strictAngles": Boolean, // Strict Angles (Hidden. Requires more precise cut direction; changes max deviation from 60deg to 15deg)
+		"fastNotes": Boolean, // Does something (Hidden)
 	},
 	"playerSettings": {
 		"staticLights": Boolean, // Static lights

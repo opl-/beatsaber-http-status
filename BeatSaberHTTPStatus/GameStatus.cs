@@ -13,6 +13,7 @@ namespace BeatSaberHTTPStatus {
 		public string songName = null;
 		public string songSubName = null;
 		public string songAuthorName = null;
+		public string levelAuthorName = null;
 		public string songCover = null;
 		public string songHash = null;
 		public float songBPM;
@@ -27,6 +28,7 @@ namespace BeatSaberHTTPStatus {
 		public int obstaclesCount = 0;
 		public int maxScore = 0;
 		public string maxRank = "E";
+		public string environmentName = null;
 
 		// Performance
 		public int score = 0;
@@ -84,8 +86,11 @@ namespace BeatSaberHTTPStatus {
 		public bool modNoBombs = false;
 		public string modSongSpeed = "Normal";
 		public float songSpeedMultiplier = 1f;
+		public bool modNoArrows = false;
+		public bool modGhostNotes = false;
 		public bool modFailOnSaberClash = false;
 		public bool modStrictAngles = false;
+		public bool modFastNotes = false;
 
 		// Player settings
 		public bool staticLights = false;
@@ -105,6 +110,7 @@ namespace BeatSaberHTTPStatus {
 			this.songName = null;
 			this.songSubName = null;
 			this.songAuthorName = null;
+			this.levelAuthorName = null;
 			this.songCover = null;
 			this.songHash = null;
 			this.songBPM = 0f;
@@ -118,6 +124,7 @@ namespace BeatSaberHTTPStatus {
 			this.obstaclesCount = 0;
 			this.maxScore = 0;
 			this.maxRank = "E";
+			this.environmentName = null;
 		}
 
 		public void ResetPerformance() {

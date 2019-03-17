@@ -173,6 +173,7 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.songName = level.songName;
 				gameStatus.songSubName = level.songSubName;
 				gameStatus.songAuthorName = level.songAuthorName;
+				gameStatus.levelAuthorName = level.levelAuthorName;
 				gameStatus.songBPM = level.beatsPerMinute;
 				gameStatus.noteJumpSpeed = diff.noteJumpMovementSpeed;
 				gameStatus.songHash = level.levelID.Substring(0, Math.Min(32, level.levelID.Length));
@@ -185,6 +186,7 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.notesCount = diff.beatmapData.notesCount;
 				gameStatus.bombsCount = diff.beatmapData.bombsCount;
 				gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
+				gameStatus.environmentName = level.environmentSceneInfo.sceneName;
 				gameStatus.maxScore = ScoreController.GetScoreForGameplayModifiersScoreMultiplier(ScoreController.MaxScoreForNumberOfNotes(diff.beatmapData.notesCount), modifierMultiplier);
 				gameStatus.maxRank = RankModel.MaxRankForGameplayModifiers(gameplayModifiers, gameplayModifiersSO).ToString();
 
@@ -230,8 +232,11 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.modDisappearingArrows = gameplayModifiers.disappearingArrows;
 				gameStatus.modNoBombs = gameplayModifiers.noBombs;
 				gameStatus.modSongSpeed = gameplayModifiers.songSpeed.ToString();
+				gameStatus.modNoArrows = gameplayModifiers.noArrows;
+				gameStatus.modGhostNotes = gameplayModifiers.ghostNotes;
 				gameStatus.modFailOnSaberClash = gameplayModifiers.failOnSaberClash;
 				gameStatus.modStrictAngles = gameplayModifiers.strictAngles;
+				gameStatus.modFastNotes = gameplayModifiers.fastNotes;
 
 				gameStatus.staticLights = playerSettings.staticLights;
 				gameStatus.leftHanded = playerSettings.leftHanded;
