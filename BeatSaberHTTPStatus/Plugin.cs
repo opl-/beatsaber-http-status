@@ -24,7 +24,7 @@ namespace BeatSaberHTTPStatus {
 
 		private bool headInObstacle = false;
 
-		private StandardLevelSceneSetupDataSO levelSceneSetupData;
+		private GameplayCoreSceneSetupData gameplayCoreSceneSetupData;
 		private GamePauseManager gamePauseManager;
 		private ScoreController scoreController;
 		private StandardLevelGameplayManager gameplayManager;
@@ -104,7 +104,7 @@ namespace BeatSaberHTTPStatus {
 
 			gameStatus.scene = newScene.name;
 
-			if (newScene.name == "Menu") {
+			if (newScene.name == "MenuCore") {
 				// Menu
 				gameStatus.scene = "Menu";
 
@@ -115,7 +115,7 @@ namespace BeatSaberHTTPStatus {
 
 				gameStatus.ResetPerformance();
 
-				// Release references for AfterCutScoreBuffers that don't resolve due to player leaving the map before finishing. 
+				// Release references for AfterCutScoreBuffers that don't resolve due to player leaving the map before finishing.
 				noteCutMapping.Clear();
 
 				statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "menu");
@@ -123,7 +123,6 @@ namespace BeatSaberHTTPStatus {
 				// In game
 				gameStatus.scene = "Song";
 
-				levelSceneSetupData = FindFirstOrDefault<StandardLevelSceneSetupDataSO>();
 				gamePauseManager = FindFirstOrDefault<GamePauseManager>();
 				scoreController = FindFirstOrDefault<ScoreController>();
 				gameplayManager = FindFirstOrDefault<StandardLevelGameplayManager>();
@@ -133,6 +132,7 @@ namespace BeatSaberHTTPStatus {
 				playerHeadAndObstacleInteraction = FindFirstOrDefault<PlayerHeadAndObstacleInteraction>();
 				gameEnergyCounter = FindFirstOrDefault<GameEnergyCounter>();
 
+				gameplayCoreSceneSetupData = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData;
 
 				// Register event listeners
 				// private GameEvent GamePauseManager#_gameDidPauseSignal
@@ -156,15 +156,15 @@ namespace BeatSaberHTTPStatus {
 				// public event Action<BeatmapEventData> BeatmapObjectCallbackController#beatmapEventDidTriggerEvent
 				beatmapObjectCallbackController.beatmapEventDidTriggerEvent += OnBeatmapEventDidTrigger;
 
-				IDifficultyBeatmap diff = levelSceneSetupData.difficultyBeatmap;
+				IDifficultyBeatmap diff = gameplayCoreSceneSetupData.difficultyBeatmap;
 				IBeatmapLevel level = diff.level;
 
 				gameStatus.partyMode = Gamemode.IsPartyActive;
 				gameStatus.mode = Gamemode.GameMode;
 
-				GameplayModifiers gameplayModifiers = levelSceneSetupData.gameplayCoreSetupData.gameplayModifiers;
-				PlayerSpecificSettings playerSettings = levelSceneSetupData.gameplayCoreSetupData.playerSpecificSettings;
-				PracticeSettings practiceSettings = levelSceneSetupData.gameplayCoreSetupData.practiceSettings;
+				GameplayModifiers gameplayModifiers = gameplayCoreSceneSetupData.gameplayModifiers;
+				PlayerSpecificSettings playerSettings = gameplayCoreSceneSetupData.playerSpecificSettings;
+				PracticeSettings practiceSettings = gameplayCoreSceneSetupData.practiceSettings;
 
 				float songSpeedMul = gameplayModifiers.songSpeedMul;
 				if (practiceSettings != null) songSpeedMul = practiceSettings.songSpeedMul;
@@ -177,7 +177,7 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.noteJumpSpeed = diff.noteJumpMovementSpeed;
 				gameStatus.songHash = level.levelID.Substring(0, Math.Min(32, level.levelID.Length));
 				gameStatus.songTimeOffset = (long) (level.songTimeOffset * 1000f / songSpeedMul);
-				gameStatus.length = (long) (level.audioClip.length * 1000f / songSpeedMul);
+				gameStatus.length = (long) (level.beatmapLevelData.audioClip.length * 1000f / songSpeedMul);
 				gameStatus.start = GetCurrentTime() - (long) (audioTimeSyncController.songTime * 1000f / songSpeedMul);
 				if (practiceSettings != null) gameStatus.start -= (long) (practiceSettings.startSongTime * 1000f / songSpeedMul);
 				gameStatus.paused = 0;

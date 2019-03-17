@@ -161,7 +161,7 @@ Contains the full [Status object](#status-object).
 
 ### `songStart` event
 
-Fired when the `StandardLevel` scene is activated.
+Fired when the `GameCore` scene is activated.
 
 Contains the full [Status object](#status-object).
 
