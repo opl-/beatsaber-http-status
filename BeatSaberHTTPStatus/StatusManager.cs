@@ -152,6 +152,7 @@ namespace BeatSaberHTTPStatus {
 			_noteCutJSON["cutNormal"][1] = gameStatus.cutNormalY;
 			_noteCutJSON["cutNormal"][2] = gameStatus.cutNormalZ;
 			_noteCutJSON["cutDistanceToCenter"] = gameStatus.cutDistanceToCenter;
+			_noteCutJSON["timeToNextBasicNote"] = gameStatus.timeToNextBasicNote;
 		}
 
 		private void UpdateModJSON() {

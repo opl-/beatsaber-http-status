@@ -401,6 +401,7 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.noteCutDirection = noteData.cutDirection.ToString();
 			gameStatus.noteLine = noteData.lineIndex;
 			gameStatus.noteLayer = (int) noteData.noteLineLayer;
+			gameStatus.timeToNextBasicNote = noteData.timeToNextBasicNote;
 			gameStatus.speedOK = noteCutInfo.speedOK;
 			gameStatus.directionOK = noteCutInfo.directionOK;
 			gameStatus.saberTypeOK = noteCutInfo.saberTypeOK;
