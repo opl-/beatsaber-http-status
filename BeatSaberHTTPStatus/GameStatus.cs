@@ -74,10 +74,10 @@ namespace BeatSaberHTTPStatus {
 		public float cutNormalY = 0;
 		public float cutNormalZ = 0;
 		public float cutDistanceToCenter = 0;
-        public float timeToNextBasicNote = 0;
+		public float timeToNextBasicNote = 0;
 
-        // Mods
-        public float modifierMultiplier = 1f;
+		// Mods
+		public float modifierMultiplier = 1f;
 		public string modObstacles = "All";
 		public bool modInstaFail = false;
 		public bool modNoFail = false;

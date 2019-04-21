@@ -401,8 +401,8 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.noteCutDirection = noteData.cutDirection.ToString();
 			gameStatus.noteLine = noteData.lineIndex;
 			gameStatus.noteLayer = (int) noteData.noteLineLayer;
-            gameStatus.timeToNextBasicNote = noteData.timeToNextBasicNote;
-            gameStatus.speedOK = noteCutInfo.speedOK;
+			gameStatus.timeToNextBasicNote = noteData.timeToNextBasicNote;
+			gameStatus.speedOK = noteCutInfo.speedOK;
 			gameStatus.directionOK = noteCutInfo.directionOK;
 			gameStatus.saberTypeOK = noteCutInfo.saberTypeOK;
 			gameStatus.wasCutTooSoon = noteCutInfo.wasCutTooSoon;
@@ -421,8 +421,7 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.cutNormalY = noteCutInfo.cutNormal[1];
 			gameStatus.cutNormalZ = noteCutInfo.cutNormal[2];
 			gameStatus.cutDistanceToCenter = noteCutInfo.cutDistanceToCenter;
-
-        }
+		}
 
 		public void OnNoteWasMissed(NoteData noteData, int multiplier) {
 			// Event order: combo, multiplier, scoreController.noteWasMissed, (LateUpdate) scoreController.scoreDidChange
