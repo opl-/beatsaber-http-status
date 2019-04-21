@@ -12,8 +12,8 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
-    <Version>1.4.1</Version>
-    <BeatSaberVersion>0.13.0</BeatSaberVersion>
+    <Version>1.5.0</Version>
+    <BeatSaberVersion>0.13.2</BeatSaberVersion>
     <GameDirPath>..\libs\beatsaber\</GameDirPath>
     <SemVerVersion>$(Version)</SemVerVersion>
   </PropertyGroup>
