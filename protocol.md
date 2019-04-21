@@ -140,6 +140,7 @@ NoteCutObject = {
 		Number, // Z value
 	],
 	"cutDistanceToCenter": Number, // Distance from the center of the note to the cut plane
+	"timeToNextBasicNote": Number, // Time until next note in seconds
 }
 ```
 
