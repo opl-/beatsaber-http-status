@@ -82,7 +82,7 @@ namespace BeatSaberHTTPStatus {
 			}
 
 			if (scoreController != null) {
-				scoreController.noteWasCutEvent += OnNoteWasCut;
+				scoreController.noteWasCutEvent -= OnNoteWasCut;
 				scoreController.noteWasMissedEvent -= OnNoteWasMissed;
 				scoreController.scoreDidChangeEvent -= OnScoreDidChange;
 				scoreController.comboDidChangeEvent -= OnComboDidChange;
@@ -145,7 +145,7 @@ namespace BeatSaberHTTPStatus {
 				scoreController.noteWasCutEvent += OnNoteWasCut;
 				// public ScoreController#noteWasMissedEvent<NoteData, int multiplier>
 				scoreController.noteWasMissedEvent += OnNoteWasMissed;
-				// public ScoreController#scoreDidChangeEvent<int> // score
+				// public ScoreController#scoreDidChangeEvent<int, int> // score
 				scoreController.scoreDidChangeEvent += OnScoreDidChange;
 				// public ScoreController#comboDidChangeEvent<int> // combo
 				scoreController.comboDidChangeEvent += OnComboDidChange;
@@ -380,7 +380,7 @@ namespace BeatSaberHTTPStatus {
 
 			SetNoteCutStatus(noteData, noteCutInfo);
 
-			// public ScoreController.ScoreWithoutMultiplier(NoteCutInfo, SaberAfterCutSwingRatingCounter, out int beforeCutScore, out int afterCutScore, out int cutDistanceScore)
+			// public ScoreController.RawScoreWithoutMultiplier(NoteCutInfo, SaberAfterCutSwingRatingCounter, out int beforeCutScore, out int afterCutScore, out int cutDistanceScore)
 			ScoreController.RawScoreWithoutMultiplier(noteCutInfo, null, out score, out afterScore, out cutDistanceScore);
 
 			int multiplier = (int) afterCutScoreBufferMultiplierField.GetValue(acsb);
