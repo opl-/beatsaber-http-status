@@ -5,9 +5,9 @@ This plugin exposes information about the current game status, live over a WebSo
 
 ## Installation
 
-### Recommended (ModSaber Installer)
+### Recommended (using a mod manager)
 
-To install Beat Saber HTTP Status use [ModSaber Installer](https://github.com/lolPants/modsaber-installer/releases) where it's listed as "HTTP Status". This will automatically install all required plugins and keep all of them up to date.
+You can install Beat Saber HTTP Status by using [one of the mod installers listed here](https://bsmg.wiki/beginners-guide). Follow the steps required to run the program of your choice, then in the mods section find "HTTP Status" and install it. This will automatically install and keep up to date everything you need.
 
 Next you will need to [get additional software](https://github.com/opl-/beatsaber-http-status/wiki/Software-using-this-plugin) that uses this plugin. **This plugin does nothing useful on its own; it simply exposes information for other programs to use.**
 
