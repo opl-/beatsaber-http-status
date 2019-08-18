@@ -28,7 +28,7 @@ namespace BeatSaberHTTPStatus {
 		private GameplayCoreSceneSetupData gameplayCoreSceneSetupData;
 		private GamePauseManager gamePauseManager;
 		private ScoreController scoreController;
-		private StandardLevelGameplayManager gameplayManager;
+		private MonoBehaviour gameplayManager;
 		private GameplayModifiersModelSO gameplayModifiersSO;
 		private GameplayModifiers gameplayModifiers;
 		private AudioTimeSyncController audioTimeSyncController;
@@ -127,7 +127,7 @@ namespace BeatSaberHTTPStatus {
 
 				gamePauseManager = FindFirstOrDefault<GamePauseManager>();
 				scoreController = FindFirstOrDefault<ScoreController>();
-				gameplayManager = FindFirstOrDefault<StandardLevelGameplayManager>();
+				gameplayManager = Resources.FindObjectsOfTypeAll<StandardLevelGameplayManager>().FirstOrDefault() as MonoBehaviour ?? Resources.FindObjectsOfTypeAll<MissionLevelGameplayManager>().FirstOrDefault();
 				beatmapObjectCallbackController = FindFirstOrDefault<BeatmapObjectCallbackController>();
 				gameplayModifiersSO = FindFirstOrDefault<GameplayModifiersModelSO>();
 				audioTimeSyncController = FindFirstOrDefault<AudioTimeSyncController>();
