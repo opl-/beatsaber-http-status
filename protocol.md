@@ -98,7 +98,7 @@ StatusObject = {
 		"reduceDebris": Boolean, // Reduce debris
 		"noHUD": Boolean, // No text and HUDs
 		"advancedHUD": Boolean, // Advanced HUD
-		"autoRestart" : Boolean, //
+		"autoRestart" : Boolean, //Auto Restart on Fail
 	},
 }
 ```
