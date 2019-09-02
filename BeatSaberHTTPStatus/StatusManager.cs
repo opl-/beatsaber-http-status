@@ -140,7 +140,6 @@ namespace BeatSaberHTTPStatus {
 			_noteCutJSON["saberDir"][1] = gameStatus.saberDirY;
 			_noteCutJSON["saberDir"][2] = gameStatus.saberDirZ;
 			_noteCutJSON["saberType"] = stringOrNull(gameStatus.saberType);
-			_noteCutJSON["swingRating"] = gameStatus.swingRating;
 			_noteCutJSON["timeDeviation"] = gameStatus.timeDeviation;
 			_noteCutJSON["cutDirectionDeviation"] = gameStatus.cutDirectionDeviation;
 			if (!_noteCutJSON["cutPoint"].IsArray) _noteCutJSON["cutPoint"] = new JSONArray();
@@ -182,12 +181,12 @@ namespace BeatSaberHTTPStatus {
 
 			playerSettingsJSON["staticLights"] = gameStatus.staticLights;
 			playerSettingsJSON["leftHanded"] = gameStatus.leftHanded;
-			playerSettingsJSON["swapColors"] = gameStatus.swapColors;
 			playerSettingsJSON["playerHeight"] = gameStatus.playerHeight;
 			playerSettingsJSON["disableSFX"] = gameStatus.disableSFX;
 			playerSettingsJSON["reduceDebris"] = gameStatus.reduceDebris;
 			playerSettingsJSON["noHUD"] = gameStatus.noHUD;
 			playerSettingsJSON["advancedHUD"] = gameStatus.advancedHUD;
+            playerSettingsJSON["autoRestart"] = gameStatus.autoRestart;
 		}
 
 		private void UpdateBeatmapEventJSON() {
