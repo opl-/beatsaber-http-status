@@ -100,7 +100,7 @@ namespace BeatSaberHTTPStatus {
 		public bool reduceDebris = false;
 		public bool noHUD = false;
 		public bool advancedHUD = false;
-        public bool autoRestart = false;
+		public bool autoRestart = false;
 
 		// Beatmap event
 		public int beatmapEventType = 0;

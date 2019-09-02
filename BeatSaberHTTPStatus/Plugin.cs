@@ -245,10 +245,10 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.leftHanded = playerSettings.leftHanded;
 				gameStatus.playerHeight = playerSettings.playerHeight;
 				gameStatus.disableSFX = playerSettings.disableSFX;
-                gameStatus.reduceDebris = playerSettings.reduceDebris;
+				gameStatus.reduceDebris = playerSettings.reduceDebris;
 				gameStatus.noHUD = playerSettings.noTextsAndHuds;
 				gameStatus.advancedHUD = playerSettings.advancedHud;
-                gameStatus.autoRestart = playerSettings.autoRestart;
+				gameStatus.autoRestart = playerSettings.autoRestart;
 
 				statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
 			}
