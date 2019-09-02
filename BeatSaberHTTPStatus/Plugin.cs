@@ -41,8 +41,6 @@ namespace BeatSaberHTTPStatus {
 		private FieldInfo noteCutInfoField = typeof(CutScoreBuffer).GetField("_noteCutInfo", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 		/// protected List<CutScoreBuffer> ScoreController._cutScoreBuffers // contains a list of after cut buffers
 		private FieldInfo afterCutScoreBuffersField = typeof(ScoreController).GetField("_cutScoreBuffers", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-		/// private int CutScoreBuffer#_afterCutScoreWithMultiplier
-		private FieldInfo cutScoreWithMultiplierField = typeof(CutScoreBuffer).GetField("_cutScoreWithMultiplier", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 		/// private int CutScoreBuffer#_multiplier
 		private FieldInfo cutScoreBufferMultiplierField = typeof(CutScoreBuffer).GetField("_multiplier", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 		/// private static LevelCompletionResults.Rank LevelCompletionResults.GetRankForScore(int score, int maxPossibleScore)
@@ -325,7 +323,7 @@ namespace BeatSaberHTTPStatus {
 
 			var gameStatus = statusManager.gameStatus;
 
-			SetNoteCutStatus(noteData, noteCutInfo);
+			SetNoteCutStatus(noteData, noteCutInfo, true);
 
 			int score = 0;
 			int afterScore = 0;
@@ -379,14 +377,12 @@ namespace BeatSaberHTTPStatus {
 
 			noteCutMapping.Remove(noteCutInfo);
 
-			SetNoteCutStatus(noteData, noteCutInfo);
+			SetNoteCutStatus(noteData, noteCutInfo, false);
 
-			// public ScoreController.RawScoreWithoutMultiplier(NoteCutInfo, SaberAfterCutSwingRatingCounter, out int beforeCutScore, out int afterCutScore, out int cutDistanceScore)
+			// public ScoreController.RawScoreWithoutMultiplier(NoteCutInfo, out int beforeCutRawScore, out int afterCutRawScore, out int cutDistanceRawScore)
 			ScoreController.RawScoreWithoutMultiplier(noteCutInfo, out score, out afterScore, out cutDistanceScore);
 
 			int multiplier = (int) cutScoreBufferMultiplierField.GetValue(acsb);
-
-			afterScore = (int) cutScoreWithMultiplierField.GetValue(acsb) / multiplier;
 
 			statusManager.gameStatus.initialScore = score;
 			statusManager.gameStatus.finalScore = score + afterScore;
@@ -397,7 +393,7 @@ namespace BeatSaberHTTPStatus {
 			acsb.didFinishEvent -= OnNoteWasFullyCut;
 		}
 
-		private void SetNoteCutStatus(NoteData noteData, NoteCutInfo noteCutInfo) {
+		private void SetNoteCutStatus(NoteData noteData, NoteCutInfo noteCutInfo, bool initialCut) {
 			GameStatus gameStatus = statusManager.gameStatus;
 
 			gameStatus.noteID = noteData.id;
@@ -415,6 +411,7 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.saberDirY = noteCutInfo.saberDir[1];
 			gameStatus.saberDirZ = noteCutInfo.saberDir[2];
 			gameStatus.saberType = noteCutInfo.saberType.ToString();
+			gameStatus.swingRating = initialCut ? noteCutInfo.swingRatingCounter.beforeCutRating : noteCutInfo.swingRatingCounter.afterCutRating;
 			gameStatus.timeDeviation = noteCutInfo.timeDeviation;
 			gameStatus.cutDirectionDeviation = noteCutInfo.cutDirDeviation;
 			gameStatus.cutPointX = noteCutInfo.cutPoint[0];

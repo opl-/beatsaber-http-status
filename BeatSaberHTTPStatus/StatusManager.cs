@@ -186,7 +186,7 @@ namespace BeatSaberHTTPStatus {
 			playerSettingsJSON["reduceDebris"] = gameStatus.reduceDebris;
 			playerSettingsJSON["noHUD"] = gameStatus.noHUD;
 			playerSettingsJSON["advancedHUD"] = gameStatus.advancedHUD;
-            playerSettingsJSON["autoRestart"] = gameStatus.autoRestart;
+			playerSettingsJSON["autoRestart"] = gameStatus.autoRestart;
 		}
 
 		private void UpdateBeatmapEventJSON() {
