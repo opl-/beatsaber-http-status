@@ -48,6 +48,8 @@ To build this project you will need to create a `BeatSaberHTTPStatus/BeatSaberHT
 
 Alternatively you can provide the game DLLs in the `libs/beatsaber` directory using the standard Beat Saber directory structure. For a full list see the [project file](BeatSaberHTTPStatus/BeatSaberHTTPStatusPlugin.csproj).
 
+Before opening a pull request, please read the [contributing guide](CONTRIBUTING.md).
+
 
 ## Credits
 
