@@ -126,7 +126,7 @@ NoteCutObject = {
 		Number, // Z value
 	],
 	"saberType": "SaberA" | "SaberB", // Saber used to cut this note
-	"swingRating": Number, // Game's swing rating. Uses the before cut rating in noteCut events and after cut rating for noteFullyCut events.
+	"swingRating": Number, // Game's swing rating. Uses the before cut rating in noteCut events and after cut rating for noteFullyCut events. -1 for bombs.
 	"timeDeviation": Number, // Time offset in seconds from the perfect time to cut a note
 	"cutDirectionDeviation": Number, // Offset from the perfect cut angle in degrees
 	"cutPoint": [ // Position of the point on the cut plane closests to the note center

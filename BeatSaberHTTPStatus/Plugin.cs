@@ -411,7 +411,7 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.saberDirY = noteCutInfo.saberDir[1];
 			gameStatus.saberDirZ = noteCutInfo.saberDir[2];
 			gameStatus.saberType = noteCutInfo.saberType.ToString();
-			gameStatus.swingRating = initialCut ? noteCutInfo.swingRatingCounter.beforeCutRating : noteCutInfo.swingRatingCounter.afterCutRating;
+			gameStatus.swingRating = noteCutInfo.swingRatingCounter == null ? -1 : initialCut ? noteCutInfo.swingRatingCounter.beforeCutRating : noteCutInfo.swingRatingCounter.afterCutRating;
 			gameStatus.timeDeviation = noteCutInfo.timeDeviation;
 			gameStatus.cutDirectionDeviation = noteCutInfo.cutDirDeviation;
 			gameStatus.cutPointX = noteCutInfo.cutPoint[0];
