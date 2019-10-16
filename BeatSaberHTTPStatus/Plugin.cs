@@ -7,6 +7,9 @@ using IllusionPlugin;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using BS_Utils.Gameplay;
+using EndlessMode;
+using EndlessMode.Misc;
+using BS_Utils.Utilities;
 
 // Interesting props and methods:
 // protected const int ScoreController.kMaxCutScore // 110
@@ -66,13 +69,14 @@ namespace BeatSaberHTTPStatus {
 			initialized = true;
 
 			SceneManager.activeSceneChanged += this.OnActiveSceneChanged;
-
+			EndlessMode.SongStitcher.songSwitched += this.OnSongChanged;
 			server = new HTTPServer(statusManager);
 			server.InitServer();
 		}
 
 		public void OnApplicationQuit() {
 			SceneManager.activeSceneChanged -= this.OnActiveSceneChanged;
+			EndlessMode.SongStitcher.songSwitched -= this.OnSongChanged;
 
 			if (gamePauseManager != null) {
 				RemoveSubscriber(gamePauseManager, "_gameDidPauseSignal", OnGamePause);
@@ -98,6 +102,104 @@ namespace BeatSaberHTTPStatus {
 
 			server.StopServer();
 		}
+
+		private void OnSongChanged(IDifficultyBeatmap _, IDifficultyBeatmap diff){
+			GameStatus gameStatus = statusManager.gameStatus;
+			IBeatmapLevel level = diff.level;
+
+			gameStatus.partyMode = Gamemode.IsPartyActive;
+			gameStatus.mode = Gamemode.GameMode;
+
+			gameplayModifiers = gameplayCoreSceneSetupData.gameplayModifiers;
+			PlayerSpecificSettings playerSettings = gameplayCoreSceneSetupData.playerSpecificSettings;
+			PracticeSettings practiceSettings = gameplayCoreSceneSetupData.practiceSettings;
+
+			float songSpeedMul = gameplayModifiers.songSpeedMul;
+			if (practiceSettings != null) songSpeedMul = practiceSettings.songSpeedMul;
+			float modifierMultiplier = gameplayModifiersSO.GetTotalMultiplier(gameplayModifiers);
+
+			gameStatus.songName = level.songName;
+			gameStatus.songSubName = level.songSubName;
+			gameStatus.songAuthorName = level.songAuthorName;
+			gameStatus.levelAuthorName = level.levelAuthorName;
+			gameStatus.songBPM = level.beatsPerMinute;
+			gameStatus.noteJumpSpeed = diff.noteJumpMovementSpeed;
+			gameStatus.songHash = level.levelID.Substring(0, Math.Min(32, level.levelID.Length));
+			gameStatus.songTimeOffset = (long)(level.songTimeOffset * 1000f / songSpeedMul);
+			gameStatus.length = (long)(level.beatmapLevelData.audioClip.length * 1000f / songSpeedMul);
+			gameStatus.start = GetCurrentTime() - (long)(audioTimeSyncController.songTime * 1000f / songSpeedMul);
+			if (practiceSettings != null) gameStatus.start -= (long)(practiceSettings.startSongTime * 1000f / songSpeedMul);
+			gameStatus.paused = 0;
+			gameStatus.difficulty = diff.difficulty.Name();
+			gameStatus.notesCount = diff.beatmapData.notesCount;
+			gameStatus.bombsCount = diff.beatmapData.bombsCount;
+			gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
+			gameStatus.environmentName = level.environmentInfo.sceneInfo.sceneName;
+
+			gameStatus.maxScore = ScoreController.MaxModifiedScoreForMaxRawScore(ScoreController.MaxRawScoreForNumberOfNotes(diff.beatmapData.notesCount), gameplayModifiers, gameplayModifiersSO);
+			gameStatus.maxRank = RankModel.MaxRankForGameplayModifiers(gameplayModifiers, gameplayModifiersSO).ToString();
+
+			try {
+				// From https://support.unity3d.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
+				var texture = level.GetCoverImageTexture2DAsync(CancellationToken.None).Result;
+				var active = RenderTexture.active;
+				var temporary = RenderTexture.GetTemporary(
+					texture.width,
+					texture.height,
+					0,
+					RenderTextureFormat.Default,
+					RenderTextureReadWrite.Linear
+				);
+
+				Graphics.Blit(texture, temporary);
+				RenderTexture.active = temporary;
+
+				var cover = new Texture2D(texture.width, texture.height);
+				cover.ReadPixels(new Rect(0, 0, temporary.width, temporary.height), 0, 0);
+				cover.Apply();
+
+				RenderTexture.active = active;
+				RenderTexture.ReleaseTemporary(temporary);
+
+				gameStatus.songCover = System.Convert.ToBase64String(
+					ImageConversion.EncodeToPNG(cover)
+				);
+			} catch {
+				gameStatus.songCover = null;
+			}
+
+			gameStatus.ResetPerformance();
+
+			gameStatus.modifierMultiplier = modifierMultiplier;
+			gameStatus.songSpeedMultiplier = songSpeedMul;
+			gameStatus.batteryLives = gameEnergyCounter.batteryLives;
+
+			gameStatus.modObstacles = gameplayModifiers.enabledObstacleType.ToString();
+			gameStatus.modInstaFail = gameplayModifiers.instaFail;
+			gameStatus.modNoFail = gameplayModifiers.noFail;
+			gameStatus.modBatteryEnergy = gameplayModifiers.batteryEnergy;
+			gameStatus.modDisappearingArrows = gameplayModifiers.disappearingArrows;
+			gameStatus.modNoBombs = gameplayModifiers.noBombs;
+			gameStatus.modSongSpeed = gameplayModifiers.songSpeed.ToString();
+			gameStatus.modNoArrows = gameplayModifiers.noArrows;
+			gameStatus.modGhostNotes = gameplayModifiers.ghostNotes;
+			gameStatus.modFailOnSaberClash = gameplayModifiers.failOnSaberClash;
+			gameStatus.modStrictAngles = gameplayModifiers.strictAngles;
+			gameStatus.modFastNotes = gameplayModifiers.fastNotes;
+
+			gameStatus.staticLights = playerSettings.staticLights;
+			gameStatus.leftHanded = playerSettings.leftHanded;
+			gameStatus.playerHeight = playerSettings.playerHeight;
+			gameStatus.disableSFX = playerSettings.disableSFX;
+			gameStatus.reduceDebris = playerSettings.reduceDebris;
+			gameStatus.noHUD = playerSettings.noTextsAndHuds;
+			gameStatus.advancedHUD = playerSettings.advancedHud;
+			gameStatus.autoRestart = playerSettings.autoRestart;
+
+			statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
+		}
+
+		
 
 		private void OnActiveSceneChanged(Scene oldScene, Scene newScene) {
 			GameStatus gameStatus = statusManager.gameStatus;
@@ -158,97 +260,8 @@ namespace BeatSaberHTTPStatus {
 
 				IDifficultyBeatmap diff = gameplayCoreSceneSetupData.difficultyBeatmap;
 				IBeatmapLevel level = diff.level;
-
-				gameStatus.partyMode = Gamemode.IsPartyActive;
-				gameStatus.mode = Gamemode.GameMode;
-
-				gameplayModifiers = gameplayCoreSceneSetupData.gameplayModifiers;
-				PlayerSpecificSettings playerSettings = gameplayCoreSceneSetupData.playerSpecificSettings;
-				PracticeSettings practiceSettings = gameplayCoreSceneSetupData.practiceSettings;
-
-				float songSpeedMul = gameplayModifiers.songSpeedMul;
-				if (practiceSettings != null) songSpeedMul = practiceSettings.songSpeedMul;
-				float modifierMultiplier = gameplayModifiersSO.GetTotalMultiplier(gameplayModifiers);
-
-				gameStatus.songName = level.songName;
-				gameStatus.songSubName = level.songSubName;
-				gameStatus.songAuthorName = level.songAuthorName;
-				gameStatus.levelAuthorName = level.levelAuthorName;
-				gameStatus.songBPM = level.beatsPerMinute;
-				gameStatus.noteJumpSpeed = diff.noteJumpMovementSpeed;
-				gameStatus.songHash = level.levelID.Substring(0, Math.Min(32, level.levelID.Length));
-				gameStatus.songTimeOffset = (long) (level.songTimeOffset * 1000f / songSpeedMul);
-				gameStatus.length = (long) (level.beatmapLevelData.audioClip.length * 1000f / songSpeedMul);
-				gameStatus.start = GetCurrentTime() - (long) (audioTimeSyncController.songTime * 1000f / songSpeedMul);
-				if (practiceSettings != null) gameStatus.start -= (long) (practiceSettings.startSongTime * 1000f / songSpeedMul);
-				gameStatus.paused = 0;
-				gameStatus.difficulty = diff.difficulty.Name();
-				gameStatus.notesCount = diff.beatmapData.notesCount;
-				gameStatus.bombsCount = diff.beatmapData.bombsCount;
-				gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
-				gameStatus.environmentName = level.environmentInfo.sceneInfo.sceneName;
-
-				gameStatus.maxScore = ScoreController.MaxModifiedScoreForMaxRawScore(ScoreController.MaxRawScoreForNumberOfNotes(diff.beatmapData.notesCount), gameplayModifiers, gameplayModifiersSO);
-				gameStatus.maxRank = RankModel.MaxRankForGameplayModifiers(gameplayModifiers, gameplayModifiersSO).ToString();
-
-				try {
-					// From https://support.unity3d.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
-					var texture = level.GetCoverImageTexture2DAsync(CancellationToken.None).Result;
-					var active = RenderTexture.active;
-					var temporary = RenderTexture.GetTemporary(
-						texture.width,
-						texture.height,
-						0,
-						RenderTextureFormat.Default,
-						RenderTextureReadWrite.Linear
-					);
-
-					Graphics.Blit(texture, temporary);
-					RenderTexture.active = temporary;
-
-					var cover = new Texture2D(texture.width, texture.height);
-					cover.ReadPixels(new Rect(0, 0, temporary.width, temporary.height), 0, 0);
-					cover.Apply();
-
-					RenderTexture.active = active;
-					RenderTexture.ReleaseTemporary(temporary);
-
-					gameStatus.songCover = System.Convert.ToBase64String(
-						ImageConversion.EncodeToPNG(cover)
-					);
-				} catch {
-					gameStatus.songCover = null;
-				}
-
-				gameStatus.ResetPerformance();
-
-				gameStatus.modifierMultiplier = modifierMultiplier;
-				gameStatus.songSpeedMultiplier = songSpeedMul;
-				gameStatus.batteryLives = gameEnergyCounter.batteryLives;
-
-				gameStatus.modObstacles = gameplayModifiers.enabledObstacleType.ToString();
-				gameStatus.modInstaFail = gameplayModifiers.instaFail;
-				gameStatus.modNoFail = gameplayModifiers.noFail;
-				gameStatus.modBatteryEnergy = gameplayModifiers.batteryEnergy;
-				gameStatus.modDisappearingArrows = gameplayModifiers.disappearingArrows;
-				gameStatus.modNoBombs = gameplayModifiers.noBombs;
-				gameStatus.modSongSpeed = gameplayModifiers.songSpeed.ToString();
-				gameStatus.modNoArrows = gameplayModifiers.noArrows;
-				gameStatus.modGhostNotes = gameplayModifiers.ghostNotes;
-				gameStatus.modFailOnSaberClash = gameplayModifiers.failOnSaberClash;
-				gameStatus.modStrictAngles = gameplayModifiers.strictAngles;
-				gameStatus.modFastNotes = gameplayModifiers.fastNotes;
-
-				gameStatus.staticLights = playerSettings.staticLights;
-				gameStatus.leftHanded = playerSettings.leftHanded;
-				gameStatus.playerHeight = playerSettings.playerHeight;
-				gameStatus.disableSFX = playerSettings.disableSFX;
-				gameStatus.reduceDebris = playerSettings.reduceDebris;
-				gameStatus.noHUD = playerSettings.noTextsAndHuds;
-				gameStatus.advancedHUD = playerSettings.advancedHud;
-				gameStatus.autoRestart = playerSettings.autoRestart;
-
-				statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
+				OnSongChanged(null, diff);
+				
 			}
 		}
 
