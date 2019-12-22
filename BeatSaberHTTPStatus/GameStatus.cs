@@ -97,7 +97,7 @@ namespace BeatSaberHTTPStatus {
 		public bool staticLights = false;
 		public bool leftHanded = false;
 		public float playerHeight = 1.7f;
-		public bool disableSFX = false;
+		public float sfxVolume = 0.7f;
 		public bool reduceDebris = false;
 		public bool noHUD = false;
 		public bool advancedHUD = false;

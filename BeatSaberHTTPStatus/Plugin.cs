@@ -264,7 +264,7 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.staticLights = playerSettings.staticLights;
 				gameStatus.leftHanded = playerSettings.leftHanded;
 				gameStatus.playerHeight = playerSettings.playerHeight;
-				//gameStatus.disableSFX = playerSettings.disableSFX;
+				gameStatus.sfxVolume = playerSettings.sfxVolume;
 				gameStatus.reduceDebris = playerSettings.reduceDebris;
 				gameStatus.noHUD = playerSettings.noTextsAndHuds;
 				gameStatus.advancedHUD = playerSettings.advancedHud;

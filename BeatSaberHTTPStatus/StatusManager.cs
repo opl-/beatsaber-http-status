@@ -182,7 +182,7 @@ namespace BeatSaberHTTPStatus {
 			playerSettingsJSON["staticLights"] = gameStatus.staticLights;
 			playerSettingsJSON["leftHanded"] = gameStatus.leftHanded;
 			playerSettingsJSON["playerHeight"] = gameStatus.playerHeight;
-			playerSettingsJSON["disableSFX"] = gameStatus.disableSFX;
+			playerSettingsJSON["sfxVolume"] = gameStatus.sfxVolume;
 			playerSettingsJSON["reduceDebris"] = gameStatus.reduceDebris;
 			playerSettingsJSON["noHUD"] = gameStatus.noHUD;
 			playerSettingsJSON["advancedHUD"] = gameStatus.advancedHUD;
