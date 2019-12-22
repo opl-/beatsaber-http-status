@@ -126,8 +126,7 @@ namespace BeatSaberHTTPStatus {
 				noteCutMapping.Clear();
 
 				statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "menu");
-			}
-			else if (newScene.name == "GameCore") {
+			} else if (newScene.name == "GameCore") {
 				// In game
 				gameStatus.scene = "Song";
 
@@ -147,8 +146,7 @@ namespace BeatSaberHTTPStatus {
 					standardLevelGameplayManager.levelFailedEvent += OnLevelFailed;
 					// public event Action StandardLevelGameplayManager#levelFinishedEvent;
 					standardLevelGameplayManager.levelFinishedEvent += OnLevelFinished;
-				}
-				else if (gameplayManager.GetType() == typeof(MissionLevelGameplayManager)) {
+				} else if (gameplayManager.GetType() == typeof(MissionLevelGameplayManager)) {
 					PluginLog("Mission Level loaded");
 					missionLevelGameplayManager = FindFirstOrDefault<MissionLevelGameplayManager>();
 					// public event Action StandardLevelGameplayManager#levelFailedEvent;
