@@ -52,11 +52,11 @@ namespace BeatSaberHTTPStatus {
 		public static readonly string GameVersion = "$BS_VERSION$"; // Populated by MSBuild
 
 		public string Name {
-			get { return "HTTP Status"; }
+			get {return "HTTP Status";}
 		}
 
 		public string Version {
-			get { return PluginVersion; }
+			get {return PluginVersion;}
 		}
 
 		public static void PluginLog(string str) {
@@ -198,10 +198,10 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.songBPM = level.beatsPerMinute;
 				gameStatus.noteJumpSpeed = diff.noteJumpMovementSpeed;
 				gameStatus.songHash = level.levelID.Substring(0, Math.Min(32, level.levelID.Length));
-				gameStatus.songTimeOffset = (long)(level.songTimeOffset * 1000f / songSpeedMul);
-				gameStatus.length = (long)(level.beatmapLevelData.audioClip.length * 1000f / songSpeedMul);
-				gameStatus.start = GetCurrentTime() - (long)(audioTimeSyncController.songTime * 1000f / songSpeedMul);
-				if (practiceSettings != null) gameStatus.start -= (long)(practiceSettings.startSongTime * 1000f / songSpeedMul);
+				gameStatus.songTimeOffset = (long) (level.songTimeOffset * 1000f / songSpeedMul);
+				gameStatus.length = (long) (level.beatmapLevelData.audioClip.length * 1000f / songSpeedMul);
+				gameStatus.start = GetCurrentTime() - (long) (audioTimeSyncController.songTime * 1000f / songSpeedMul);
+				if (practiceSettings != null) gameStatus.start -= (long) (practiceSettings.startSongTime * 1000f / songSpeedMul);
 				gameStatus.paused = 0;
 				gameStatus.difficulty = diff.difficulty.Name();
 				gameStatus.notesCount = diff.beatmapData.notesCount;
@@ -237,8 +237,7 @@ namespace BeatSaberHTTPStatus {
 					gameStatus.songCover = System.Convert.ToBase64String(
 						ImageConversion.EncodeToPNG(cover)
 					);
-				}
-				catch {
+				} catch {
 					gameStatus.songCover = null;
 				}
 
@@ -274,7 +273,7 @@ namespace BeatSaberHTTPStatus {
 			}
 		}
 
-		private static T FindFirstOrDefault<T>() where T : UnityEngine.Object {
+		private static T FindFirstOrDefault<T>() where T: UnityEngine.Object {
 			T obj = Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
 			if (obj == null) {
 				PluginLog("Couldn't find " + typeof(T).FullName);
@@ -294,8 +293,7 @@ namespace BeatSaberHTTPStatus {
 				headInObstacle = true;
 
 				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "obstacleEnter");
-			}
-			else if (headInObstacle && !currentHeadInObstacle) {
+			} else if (headInObstacle && !currentHeadInObstacle) {
 				headInObstacle = false;
 
 				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "obstacleExit");
@@ -309,7 +307,7 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public void OnGameResume() {
-			statusManager.gameStatus.start = GetCurrentTime() - (long)(audioTimeSyncController.songTime * 1000f / statusManager.gameStatus.songSpeedMultiplier);
+			statusManager.gameStatus.start = GetCurrentTime() - (long) (audioTimeSyncController.songTime * 1000f / statusManager.gameStatus.songSpeedMultiplier);
 			statusManager.gameStatus.paused = 0;
 
 			statusManager.EmitStatusUpdate(ChangedProperties.Beatmap, "resume");
@@ -337,23 +335,21 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.hitBombs++;
 
 				statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "bombCut");
-			}
-			else {
+			} else {
 				gameStatus.passedNotes++;
 
 				if (noteCutInfo.allIsOK) {
 					gameStatus.hitNotes++;
 
 					statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteCut");
-				}
-				else {
+				} else {
 					gameStatus.missedNotes++;
 
 					statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteMissed");
 				}
 			}
 
-			List<CutScoreBuffer> list = (List<CutScoreBuffer>)afterCutScoreBuffersField.GetValue(scoreController);
+			List<CutScoreBuffer> list = (List<CutScoreBuffer>) afterCutScoreBuffersField.GetValue(scoreController);
 
 			foreach (CutScoreBuffer acsb in list) {
 				if (noteCutInfoField.GetValue(acsb) == noteCutInfo) {
@@ -371,7 +367,7 @@ namespace BeatSaberHTTPStatus {
 			int afterScore;
 			int cutDistanceScore;
 
-			NoteCutInfo noteCutInfo = (NoteCutInfo)noteCutInfoField.GetValue(acsb);
+			NoteCutInfo noteCutInfo = (NoteCutInfo) noteCutInfoField.GetValue(acsb);
 			NoteData noteData = noteCutMapping[noteCutInfo];
 
 			noteCutMapping.Remove(noteCutInfo);
@@ -381,7 +377,7 @@ namespace BeatSaberHTTPStatus {
 			// public ScoreController.RawScoreWithoutMultiplier(NoteCutInfo, out int beforeCutRawScore, out int afterCutRawScore, out int cutDistanceRawScore)
 			ScoreController.RawScoreWithoutMultiplier(noteCutInfo, out score, out afterScore, out cutDistanceScore);
 
-			int multiplier = (int)cutScoreBufferMultiplierField.GetValue(acsb);
+			int multiplier = (int) cutScoreBufferMultiplierField.GetValue(acsb);
 
 			statusManager.gameStatus.initialScore = score;
 			statusManager.gameStatus.finalScore = score + afterScore;
@@ -399,7 +395,7 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.noteType = noteData.noteType.ToString();
 			gameStatus.noteCutDirection = noteData.cutDirection.ToString();
 			gameStatus.noteLine = noteData.lineIndex;
-			gameStatus.noteLayer = (int)noteData.noteLineLayer;
+			gameStatus.noteLayer = (int) noteData.noteLineLayer;
 			gameStatus.timeToNextBasicNote = noteData.timeToNextBasicNote;
 			gameStatus.speedOK = noteCutInfo.speedOK;
 			gameStatus.directionOK = noteCutInfo.directionOK;
@@ -431,8 +427,7 @@ namespace BeatSaberHTTPStatus {
 				statusManager.gameStatus.passedBombs++;
 
 				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "bombMissed");
-			}
-			else {
+			} else {
 				statusManager.gameStatus.passedNotes++;
 				statusManager.gameStatus.missedNotes++;
 
@@ -474,20 +469,20 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public void OnBeatmapEventDidTrigger(BeatmapEventData beatmapEventData) {
-			statusManager.gameStatus.beatmapEventType = (int)beatmapEventData.type;
+			statusManager.gameStatus.beatmapEventType = (int) beatmapEventData.type;
 			statusManager.gameStatus.beatmapEventValue = beatmapEventData.value;
 
 			statusManager.EmitStatusUpdate(ChangedProperties.BeatmapEvent, "beatmapEvent");
 		}
 
 		public static long GetCurrentTime() {
-			return (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).Ticks / TimeSpan.TicksPerMillisecond);
+			return (long) (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).Ticks / TimeSpan.TicksPerMillisecond);
 		}
 
-		public void OnLevelWasLoaded(int level) { }
-		public void OnLevelWasInitialized(int level) { }
-		public void OnFixedUpdate() { }
-		public void OnSceneLoaded(Scene scene, LoadSceneMode mode) { }
-		public void OnSceneUnloaded(Scene scene) { }
+		public void OnLevelWasLoaded(int level) {}
+		public void OnLevelWasInitialized(int level) {}
+		public void OnFixedUpdate() {}
+		public void OnSceneLoaded(Scene scene, LoadSceneMode mode) {}
+		public void OnSceneUnloaded(Scene scene) {}
 	}
 }

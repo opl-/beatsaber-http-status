@@ -1,6 +1,6 @@
 ﻿{
   "$schema": "https://raw.githubusercontent.com/beat-saber-modding-group/BSIPA-MetadataFileSchema/master/Schema.json",
-  "author": "opl-",
+  "author": "opl",
   "description": "This plugin exposes information about the current game status, live over a WebSocket and over HTTP.",
   "gameVersion": "1.6.0",
   "id": "BeatSaberHTTPStatus",

@@ -162,13 +162,15 @@
       <Using Namespace="System" />
       <Using Namespace="System.IO" />
       <Using Namespace="System.Text.RegularExpressions" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
           Log.LogMessage(string.Format("Replacing {0} in {1} to {2}", MatchExpression, InputFilename, ReplacementText));
           File.WriteAllText(
             OutputFilename,
             File.ReadAllText(InputFilename).Replace(MatchExpression, ReplacementText)
           );
-        ]]></Code>
+        ]]>
+      </Code>
     </Task>
   </UsingTask>
 </Project>
