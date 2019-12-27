@@ -28,6 +28,7 @@ namespace BeatSaberHTTPStatus {
 		private GameplayCoreSceneSetupData gameplayCoreSceneSetupData;
 		private GamePause gamePause;
 		private ScoreController scoreController;
+		private NoteController noteController;
 		private StandardLevelGameplayManager standardLevelGameplayManager;
 		private MissionLevelGameplayManager missionLevelGameplayManager;
 		private MonoBehaviour gameplayManager;
@@ -89,6 +90,10 @@ namespace BeatSaberHTTPStatus {
 				scoreController.multiplierDidChangeEvent -= OnMultiplierDidChange;
 			}
 
+			if (noteController != null) {
+				noteController.noteWasCutEvent -= OnNoteWasCut2;
+			}
+
 			if (standardLevelGameplayManager != null) {
 				standardLevelGameplayManager.levelFinishedEvent -= OnLevelFinished;
 				standardLevelGameplayManager.levelFailedEvent -= OnLevelFailed;
@@ -132,6 +137,7 @@ namespace BeatSaberHTTPStatus {
 
 				gamePause = FindFirstOrDefault<GamePause>();
 				scoreController = FindFirstOrDefault<ScoreController>();
+				noteController = FindFirstOrDefault<NoteController>();
 				gameplayManager = Resources.FindObjectsOfTypeAll<StandardLevelGameplayManager>().FirstOrDefault() as MonoBehaviour ?? Resources.FindObjectsOfTypeAll<MissionLevelGameplayManager>().FirstOrDefault();
 				beatmapObjectCallbackController = FindFirstOrDefault<BeatmapObjectCallbackController>();
 				gameplayModifiersSO = FindFirstOrDefault<GameplayModifiersModelSO>();
@@ -164,6 +170,8 @@ namespace BeatSaberHTTPStatus {
 				gamePause.didResumeEvent += OnGameResume;
 				// public ScoreController#noteWasCutEvent<NoteData, NoteCutInfo, int multiplier> // called after AfterCutScoreBuffer is created
 				scoreController.noteWasCutEvent += OnNoteWasCut;
+				// public NoteController#noteWasCutEvent<NoteController, NoteCutInfo>
+				noteController.noteWasCutEvent += OnNoteWasCut2;
 				// public ScoreController#noteWasMissedEvent<NoteData, int multiplier>
 				scoreController.noteWasMissedEvent += OnNoteWasMissed;
 				// public ScoreController#scoreDidChangeEvent<int, int> // score
@@ -346,8 +354,14 @@ namespace BeatSaberHTTPStatus {
 					statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteMissed");
 				}
 			}
+		}
 
-			List<CutScoreBuffer> list = (List<CutScoreBuffer>) afterCutScoreBuffersField.GetValue(scoreController);
+		public void OnNoteWasCut2(NoteController noteController, NoteCutInfo noteCutInfo) {
+			var gameStatus = statusManager.gameStatus;
+
+			var noteData = noteController.noteData;
+
+			List<CutScoreBuffer> list = (List<CutScoreBuffer>)afterCutScoreBuffersField.GetValue(scoreController);
 
 			foreach (CutScoreBuffer acsb in list) {
 				if (noteCutInfoField.GetValue(acsb) == noteCutInfo) {
