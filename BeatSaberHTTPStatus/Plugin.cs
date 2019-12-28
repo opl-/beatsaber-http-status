@@ -75,8 +75,6 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public void OnApplicationQuit() {
-			SceneManager.activeSceneChanged -= this.OnActiveSceneChanged;
-
 			if (gamePause != null) {
 				gamePause.didPauseEvent -= OnGamePause;
 				gamePause.didResumeEvent -= OnGameResume;
