@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using BS_Utils.Gameplay;
 using IPA;
+using IPALogger = IPA.Logging.Logger;
 
 // Interesting props and methods:
 // protected const int ScoreController.kMaxCutScore // 110
@@ -60,15 +61,15 @@ namespace BeatSaberHTTPStatus {
 			get {return PluginVersion;}
 		}
 
-		public static void PluginLog(string str) {
-			Console.WriteLine("[HTTP Status " + PluginVersion + "] " + str);
+		public static IPALogger log;
+
+		public void Init(IPALogger logger) {
+			log = logger;
 		}
 
 		public void OnApplicationStart() {
 			if (initialized) return;
 			initialized = true;
-
-			SceneManager.activeSceneChanged += this.OnActiveSceneChanged;
 
 			server = new HTTPServer(statusManager);
 			server.InitServer();
@@ -146,14 +147,14 @@ namespace BeatSaberHTTPStatus {
 				gameEnergyCounter = FindFirstOrDefault<GameEnergyCounter>();
 
 				if (gameplayManager.GetType() == typeof(StandardLevelGameplayManager)) {
-					PluginLog("Standard Level loaded");
+					Plugin.log.Info("Standard Level loaded");
 					standardLevelGameplayManager = FindFirstOrDefault<StandardLevelGameplayManager>();
 					// public event Action StandardLevelGameplayManager#levelFailedEvent;
 					standardLevelGameplayManager.levelFailedEvent += OnLevelFailed;
 					// public event Action StandardLevelGameplayManager#levelFinishedEvent;
 					standardLevelGameplayManager.levelFinishedEvent += OnLevelFinished;
 				} else if (gameplayManager.GetType() == typeof(MissionLevelGameplayManager)) {
-					PluginLog("Mission Level loaded");
+					Plugin.log.Info("Mission Level loaded");
 					missionLevelGameplayManager = FindFirstOrDefault<MissionLevelGameplayManager>();
 					// public event Action StandardLevelGameplayManager#levelFailedEvent;
 					missionLevelGameplayManager.levelFailedEvent += OnLevelFailed;
@@ -282,7 +283,7 @@ namespace BeatSaberHTTPStatus {
 		private static T FindFirstOrDefault<T>() where T: UnityEngine.Object {
 			T obj = Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
 			if (obj == null) {
-				PluginLog("Couldn't find " + typeof(T).FullName);
+				Plugin.log.Error("Couldn't find " + typeof(T).FullName);
 				throw new InvalidOperationException("Couldn't find " + typeof(T).FullName);
 			}
 			return obj;
@@ -364,7 +365,7 @@ namespace BeatSaberHTTPStatus {
 			List<CutScoreBuffer> list = (List<CutScoreBuffer>)afterCutScoreBuffersField.GetValue(scoreController);
 
 			foreach (CutScoreBuffer acsb in list) {
-				if (noteCutInfoField.GetValue(acsb) == noteCutInfo) {
+				if (noteCutInfoField.GetValue(acsb) == noteCutInfo && !noteCutMapping.ContainsKey(noteCutInfo)) {
 					// public CutScoreBuffer#didFinishEvent<CutScoreBuffer>
 					noteCutMapping.Add(noteCutInfo, noteData);
 
@@ -491,8 +492,6 @@ namespace BeatSaberHTTPStatus {
 			return (long) (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).Ticks / TimeSpan.TicksPerMillisecond);
 		}
 
-		public void OnLevelWasLoaded(int level) {}
-		public void OnLevelWasInitialized(int level) {}
 		public void OnFixedUpdate() {}
 		public void OnSceneLoaded(Scene scene, LoadSceneMode mode) {}
 		public void OnSceneUnloaded(Scene scene) {}
