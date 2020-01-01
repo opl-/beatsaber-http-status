@@ -26,12 +26,12 @@ namespace BeatSaberHTTPStatus {
 
 			server.AddWebSocketService<StatusBroadcastBehavior>("/socket", behavior => behavior.SetStatusManager(statusManager));
 
-			BeatSaberHTTPStatus.Plugin.PluginLog("Starting HTTP server on port " + ServerPort);
+			BeatSaberHTTPStatus.Plugin.log.Info("Starting HTTP server on port " + ServerPort);
 			server.Start();
 		}
 
 		public void StopServer() {
-			BeatSaberHTTPStatus.Plugin.PluginLog("Stopping HTTP server");
+			BeatSaberHTTPStatus.Plugin.log.Info("Stopping HTTP server");
 			server.Stop();
 		}
 

@@ -94,7 +94,7 @@ StatusObject = {
 		"staticLights": Boolean, // Static lights
 		"leftHanded": Boolean, // Left handed
 		"playerHeight": Number, // Player's height
-		"disableSFX": Boolean, // Disable sound effects
+		"sfxVolume": Number, // Disable sound effects [0..1]
 		"reduceDebris": Boolean, // Reduce debris
 		"noHUD": Boolean, // No text and HUDs
 		"advancedHUD": Boolean, // Advanced HUD
