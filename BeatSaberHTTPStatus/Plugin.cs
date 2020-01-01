@@ -362,7 +362,7 @@ namespace BeatSaberHTTPStatus {
 
 			var noteData = noteController.noteData;
 
-			List<CutScoreBuffer> list = (List<CutScoreBuffer>)afterCutScoreBuffersField.GetValue(scoreController);
+			List<CutScoreBuffer> list = (List<CutScoreBuffer>) afterCutScoreBuffersField.GetValue(scoreController);
 
 			foreach (CutScoreBuffer acsb in list) {
 				if (noteCutInfoField.GetValue(acsb) == noteCutInfo && !noteCutMapping.ContainsKey(noteCutInfo)) {
