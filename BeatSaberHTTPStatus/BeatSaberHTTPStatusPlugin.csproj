@@ -85,7 +85,9 @@
     <ToCompile Include="**\*.cs" Exclude="bin\**\*;obj\**\*" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="manifest.json" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)src/manifest.json">
+      <LogicalName>$(RootNamespace).manifest.json</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- Clean output directories before build -->
@@ -104,6 +106,9 @@
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)Plugin.cs" OutputFilename="$(IntermediateSourcePath)Plugin.cs" MatchExpression="$SEMVER_VERSION$" ReplacementText="$(SemVerVersion)" />
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)Plugin.cs" OutputFilename="$(IntermediateSourcePath)Plugin.cs" MatchExpression="$BS_VERSION$" ReplacementText="$(BeatSaberVersion)" />
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)Properties\AssemblyInfo.cs" OutputFilename="$(IntermediateSourcePath)Properties\AssemblyInfo.cs" MatchExpression="$VERSION$" ReplacementText="$(Version)" />
+    <Copy SourceFiles="manifest.json" DestinationFiles="$(IntermediateSourcePath)manifest.json" SkipUnchangedFiles="true"></Copy>
+    <ReplaceFileText InputFilename="$(IntermediateSourcePath)manifest.json" OutputFilename="$(IntermediateSourcePath)manifest.json" MatchExpression="$SEMVER_VERSION$" ReplacementText="$(SemVerVersion)" />
+    <ReplaceFileText InputFilename="$(IntermediateSourcePath)manifest.json" OutputFilename="$(IntermediateSourcePath)manifest.json" MatchExpression="$BS_VERSION$" ReplacementText="$(BeatSaberVersion)" />
   </Target>
   <!-- Package built DLLs into a zip -->
   <Target Name="CreateZip" AfterTargets="AfterBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
