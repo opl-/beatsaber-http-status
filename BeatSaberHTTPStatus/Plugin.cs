@@ -18,7 +18,8 @@ using IPALogger = IPA.Logging.Logger;
 // protected ScoreController._baseScore
 
 namespace BeatSaberHTTPStatus {
-	public class Plugin : IBeatSaberPlugin {
+	[Plugin(RuntimeOptions.SingleStartInit)]
+	internal class Plugin {
 		private bool initialized;
 
 		private StatusManager statusManager = new StatusManager();
@@ -62,19 +63,26 @@ namespace BeatSaberHTTPStatus {
 
 		public static IPALogger log;
 
+		[Init]
 		public void Init(IPALogger logger) {
 			log = logger;
 		}
 
+		[OnStart]
 		public void OnApplicationStart() {
 			if (initialized) return;
 			initialized = true;
 
 			server = new HTTPServer(statusManager);
 			server.InitServer();
+			
+			SceneManager.activeSceneChanged += OnActiveSceneChanged;
 		}
 
+		[OnExit]
 		public void OnApplicationQuit() {
+			SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+
 			if (gamePause != null) {
 				gamePause.didPauseEvent -= OnGamePause;
 				gamePause.didResumeEvent -= OnGameResume;
@@ -206,7 +214,7 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
 				gameStatus.environmentName = level.environmentInfo.sceneInfo.sceneName;
 
-				gameStatus.maxScore = ScoreController.MaxModifiedScoreForMaxRawScore(ScoreController.MaxRawScoreForNumberOfNotes(diff.beatmapData.notesCount), gameplayModifiers, gameplayModifiersSO);
+				gameStatus.maxScore = gameplayModifiersSO.MaxModifiedScoreForMaxRawScore(ScoreModel.MaxRawScoreForNumberOfNotes(diff.beatmapData.notesCount), gameplayModifiers, gameplayModifiersSO);
 				gameStatus.maxRank = RankModel.MaxRankForGameplayModifiers(gameplayModifiers, gameplayModifiersSO).ToString();
 
 				try {
@@ -321,7 +329,7 @@ namespace BeatSaberHTTPStatus {
 			int afterScore = 0;
 			int cutDistanceScore = 0;
 
-			ScoreController.RawScoreWithoutMultiplier(noteCutInfo, out score, out afterScore, out cutDistanceScore);
+			ScoreModel.RawScoreWithoutMultiplier(noteCutInfo, out score, out afterScore, out cutDistanceScore);
 
 			gameStatus.initialScore = score;
 			gameStatus.finalScore = -1;
@@ -372,7 +380,7 @@ namespace BeatSaberHTTPStatus {
 			SetNoteCutStatus(noteData, noteCutInfo, false);
 
 			// public ScoreController.RawScoreWithoutMultiplier(NoteCutInfo, out int beforeCutRawScore, out int afterCutRawScore, out int cutDistanceRawScore)
-			ScoreController.RawScoreWithoutMultiplier(noteCutInfo, out score, out afterScore, out cutDistanceScore);
+			ScoreModel.RawScoreWithoutMultiplier(noteCutInfo, out score, out afterScore, out cutDistanceScore);
 
 			int multiplier = (int) cutScoreBufferMultiplierField.GetValue(acsb);
 
@@ -437,8 +445,8 @@ namespace BeatSaberHTTPStatus {
 
 			gameStatus.score = scoreAfterMultiplier;
 
-			int currentMaxScoreBeforeMultiplier = ScoreController.MaxRawScoreForNumberOfNotes(gameStatus.passedNotes);
-			gameStatus.currentMaxScore = ScoreController.MaxModifiedScoreForMaxRawScore(currentMaxScoreBeforeMultiplier, gameplayModifiers, gameplayModifiersSO);
+			int currentMaxScoreBeforeMultiplier = ScoreModel.MaxRawScoreForNumberOfNotes(gameStatus.passedNotes);
+			gameStatus.currentMaxScore = gameplayModifiersSO.MaxModifiedScoreForMaxRawScore(currentMaxScoreBeforeMultiplier, gameplayModifiers, gameplayModifiersSO);
 
 			RankModel.Rank rank = RankModel.GetRankForScore(scoreBeforeMultiplier, gameStatus.score, currentMaxScoreBeforeMultiplier, gameStatus.currentMaxScore);
 			gameStatus.rank = RankModel.GetRankName(rank);
