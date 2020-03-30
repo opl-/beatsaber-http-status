@@ -379,7 +379,7 @@ namespace BeatSaberHTTPStatus {
 
 			SetNoteCutStatus(noteData, noteCutInfo, false);
 
-			// public ScoreController.RawScoreWithoutMultiplier(NoteCutInfo, out int beforeCutRawScore, out int afterCutRawScore, out int cutDistanceRawScore)
+			// public static ScoreModel.RawScoreWithoutMultiplier(NoteCutInfo, out int beforeCutRawScore, out int afterCutRawScore, out int cutDistanceRawScore)
 			ScoreModel.RawScoreWithoutMultiplier(noteCutInfo, out score, out afterScore, out cutDistanceScore);
 
 			int multiplier = (int) cutScoreBufferMultiplierField.GetValue(acsb);
