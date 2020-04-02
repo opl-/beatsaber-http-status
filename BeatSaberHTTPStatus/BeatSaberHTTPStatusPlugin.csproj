@@ -12,8 +12,8 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
-    <Version>1.9.1</Version>
-    <BeatSaberVersion>1.6.0</BeatSaberVersion>
+    <Version>1.10.0</Version>
+    <BeatSaberVersion>1.8.0</BeatSaberVersion>
     <GameDirPath>..\libs\beatsaber\</GameDirPath>
     <SemVerVersion>$(Version)</SemVerVersion>
   </PropertyGroup>
@@ -48,8 +48,8 @@
       <HintPath>$(GameDirPath)\Beat Saber_Data\Managed\IPA.Loader.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="MainAssembly">
-      <HintPath>$(GameDirPath)\Beat Saber_Data\Managed\MainAssembly.dll</HintPath>
+    <Reference Include="Main">
+      <HintPath>$(GameDirPath)\Beat Saber_Data\Managed\Main.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -106,7 +106,7 @@
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)Plugin.cs" OutputFilename="$(IntermediateSourcePath)Plugin.cs" MatchExpression="$SEMVER_VERSION$" ReplacementText="$(SemVerVersion)" />
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)Plugin.cs" OutputFilename="$(IntermediateSourcePath)Plugin.cs" MatchExpression="$BS_VERSION$" ReplacementText="$(BeatSaberVersion)" />
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)Properties\AssemblyInfo.cs" OutputFilename="$(IntermediateSourcePath)Properties\AssemblyInfo.cs" MatchExpression="$VERSION$" ReplacementText="$(Version)" />
-    <Copy SourceFiles="manifest.json" DestinationFiles="$(IntermediateSourcePath)manifest.json" SkipUnchangedFiles="true"></Copy>
+    <Copy SourceFiles="manifest.json" DestinationFiles="$(IntermediateSourcePath)manifest.json" SkipUnchangedFiles="true" />
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)manifest.json" OutputFilename="$(IntermediateSourcePath)manifest.json" MatchExpression="$SEMVER_VERSION$" ReplacementText="$(SemVerVersion)" />
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)manifest.json" OutputFilename="$(IntermediateSourcePath)manifest.json" MatchExpression="$BS_VERSION$" ReplacementText="$(BeatSaberVersion)" />
   </Target>
