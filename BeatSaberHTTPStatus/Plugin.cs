@@ -333,6 +333,7 @@ namespace BeatSaberHTTPStatus {
 
 			gameStatus.initialScore = beforeCutScore + cutDistanceScore;
 			gameStatus.finalScore = -1;
+			gameStatus.cutDistanceScore = cutDistanceScore;
 			gameStatus.cutMultiplier = multiplier;
 
 			if (noteData.noteType == NoteType.Bomb) {
@@ -386,6 +387,7 @@ namespace BeatSaberHTTPStatus {
 
 			statusManager.gameStatus.initialScore = beforeCutScore + cutDistanceScore;
 			statusManager.gameStatus.finalScore = beforeCutScore + afterCutScore + cutDistanceScore;
+			statusManager.gameStatus.cutDistanceScore = cutDistanceScore;
 			statusManager.gameStatus.cutMultiplier = multiplier;
 
 			statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteFullyCut");
