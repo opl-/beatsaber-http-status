@@ -133,6 +133,7 @@ namespace BeatSaberHTTPStatus {
 			_noteCutJSON["wasCutTooSoon"] = gameStatus.wasCutTooSoon;
 			_noteCutJSON["initialScore"] = gameStatus.initialScore == -1 ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONNumber(gameStatus.initialScore);
 			_noteCutJSON["finalScore"] = gameStatus.finalScore == -1 ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONNumber(gameStatus.finalScore);
+			_noteCutJSON["swingRating"] = gameStatus.swingRating;
 			_noteCutJSON["multiplier"] = gameStatus.cutMultiplier;
 			_noteCutJSON["saberSpeed"] = gameStatus.saberSpeed;
 			if (!_noteCutJSON["saberDir"].IsArray) _noteCutJSON["saberDir"] = new JSONArray();
