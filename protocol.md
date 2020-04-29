@@ -116,8 +116,9 @@ NoteCutObject = {
 	"directionOK": null | Boolean, // Note was cut in the correct direction. null for bombs.
 	"saberTypeOK": null | Boolean, // Note was cut with the correct saber. null for bombs.
 	"wasCutTooSoon": Boolean, // Note was cut too early
-	"initalScore": null | Integer, // Score without multipliers for the cut. Doesn't include the score for swinging after cut. null for bombs.
-	"finalScore": null | Integer, // Score without multipliers for the entire cut, including score for swinging after cut. Available in [`noteFullyCut` event](#notefullycut-event). null for bombs.
+	"initalScore": null | Integer, // Score without multipliers for the cut. It contains the prehit swing score and the cutDistanceScore, but doesn't include the score for swinging after cut. [0..85] null for bombs.
+	"finalScore": null | Integer, // Score without multipliers for the entire cut, including score for swinging after cut. [0..115] Available in [`noteFullyCut` event](#notefullycut-event). null for bombs.
+	"cutDistanceScore": null | Integer, // Score for the hit itself. [0..15] 
 	"multiplier": Integer, // Combo multiplier at the time of cut
 	"saberSpeed": Number, // Speed of the saber when the note was cut
 	"saberDir": [ // Direction the saber was moving in when the note was cut

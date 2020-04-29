@@ -325,14 +325,15 @@ namespace BeatSaberHTTPStatus {
 
 			SetNoteCutStatus(noteData, noteCutInfo, true);
 
-			int score = 0;
-			int afterScore = 0;
+			int beforeCutScore = 0;
+			int afterCutScore = 0;
 			int cutDistanceScore = 0;
 
-			ScoreModel.RawScoreWithoutMultiplier(noteCutInfo, out score, out afterScore, out cutDistanceScore);
+			ScoreModel.RawScoreWithoutMultiplier(noteCutInfo, out beforeCutScore, out afterCutScore, out cutDistanceScore);
 
-			gameStatus.initialScore = score;
+			gameStatus.initialScore = beforeCutScore + cutDistanceScore;
 			gameStatus.finalScore = -1;
+			gameStatus.cutDistanceScore = cutDistanceScore;
 			gameStatus.cutMultiplier = multiplier;
 
 			if (noteData.noteType == NoteType.Bomb) {
@@ -368,8 +369,8 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public void OnNoteWasFullyCut(CutScoreBuffer acsb) {
-			int score;
-			int afterScore;
+			int beforeCutScore;
+			int afterCutScore;
 			int cutDistanceScore;
 
 			NoteCutInfo noteCutInfo = (NoteCutInfo) noteCutInfoField.GetValue(acsb);
@@ -380,12 +381,13 @@ namespace BeatSaberHTTPStatus {
 			SetNoteCutStatus(noteData, noteCutInfo, false);
 
 			// public static ScoreModel.RawScoreWithoutMultiplier(NoteCutInfo, out int beforeCutRawScore, out int afterCutRawScore, out int cutDistanceRawScore)
-			ScoreModel.RawScoreWithoutMultiplier(noteCutInfo, out score, out afterScore, out cutDistanceScore);
+			ScoreModel.RawScoreWithoutMultiplier(noteCutInfo, out beforeCutScore, out afterCutScore, out cutDistanceScore);
 
 			int multiplier = (int) cutScoreBufferMultiplierField.GetValue(acsb);
 
-			statusManager.gameStatus.initialScore = score;
-			statusManager.gameStatus.finalScore = score + afterScore;
+			statusManager.gameStatus.initialScore = beforeCutScore + cutDistanceScore;
+			statusManager.gameStatus.finalScore = beforeCutScore + afterCutScore + cutDistanceScore;
+			statusManager.gameStatus.cutDistanceScore = cutDistanceScore;
 			statusManager.gameStatus.cutMultiplier = multiplier;
 
 			statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteFullyCut");
