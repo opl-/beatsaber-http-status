@@ -58,6 +58,7 @@ namespace BeatSaberHTTPStatus {
 		public bool wasCutTooSoon = false;
 		public int initialScore = -1;
 		public int finalScore = -1;
+		public int cutDistanceScore = -1;
 		public int cutMultiplier = 0;
 		public float saberSpeed = 0;
 		public float saberDirX = 0;
@@ -155,6 +156,7 @@ namespace BeatSaberHTTPStatus {
 			this.wasCutTooSoon = false;
 			this.initialScore = -1;
 			this.finalScore = -1;
+			this.cutDistanceScore = -1;
 			this.cutMultiplier = 0;
 			this.saberSpeed = 0;
 			this.saberDirX = 0;
