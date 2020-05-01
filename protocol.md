@@ -43,7 +43,7 @@ StatusObject = {
 		"songAuthorName": String, // Song author name
 		"levelAuthorName": String, // Beatmap author name
 		"songCover": null | String, // Base64 encoded PNG image of the song cover
-		"songHash": String, // Unique beatmap identifier. At most 32 characters long. Same for all difficulties.
+		"songHash": String, // Unique beatmap identifier. Same for all difficulties. Is extracted from the levelId and will return null for OST and WIP songs.
 		"levelId": String, // Raw levelId for a song. Same for all difficulties. 
 		"songBPM": Number, // Song Beats Per Minute
 		"noteJumpSpeed": Number, // Song note jump movement speed, how fast the notes move towards the player.
