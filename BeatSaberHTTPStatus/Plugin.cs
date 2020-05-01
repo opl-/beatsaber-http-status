@@ -203,6 +203,7 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.songBPM = level.beatsPerMinute;
 				gameStatus.noteJumpSpeed = diff.noteJumpMovementSpeed;
 				gameStatus.songHash = level.levelID.Replace("custom_level_", "").Replace(" WIP", "");
+				gameStatus.levelId = level.levelID;
 				gameStatus.songTimeOffset = (long) (level.songTimeOffset * 1000f / songSpeedMul);
 				gameStatus.length = (long) (level.beatmapLevelData.audioClip.length * 1000f / songSpeedMul);
 				gameStatus.start = GetCurrentTime() - (long) (audioTimeSyncController.songTime * 1000f / songSpeedMul);
