@@ -38,6 +38,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <OutputZip Condition=" '$(OutputZip)' == '' ">true</OutputZip>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HMLib">
@@ -115,7 +116,7 @@
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)manifest.json" OutputFilename="$(IntermediateSourcePath)manifest.json" MatchExpression="$BS_VERSION$" ReplacementText="$(BeatSaberVersion)" />
   </Target>
   <!-- Package built DLLs into a zip -->
-  <Target Name="CreateZip" AfterTargets="AfterBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <Target Name="CreateZip" AfterTargets="AfterBuild" Condition=" '$(OutputZip)' != '' And $(OutputZip) ">
     <ItemGroup>
       <ZipFilesPlugins Include="$(OutDir)\BeatSaberHTTPStatus.dll" />
     </ItemGroup>
