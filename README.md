@@ -56,6 +56,8 @@ The following properties can be specified either in the `.csproj.user` file or t
 
 - `OutputZip` = `true`/`false`: Enable/disable generating the .zip file. Can be used to get a zip for the `Debug` configuration.
 
+- `CopyToPlugins` = `true`/`false`: Enable/disable copying of the websocket library and HTTP Status DLLs to the Beat Saber installation. Depends on `GameDirPath`.
+
 
 ## Credits
 
