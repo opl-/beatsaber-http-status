@@ -16,6 +16,7 @@
     <BeatSaberVersion>1.8.0</BeatSaberVersion>
     <GameDirPath>..\libs\beatsaber\</GameDirPath>
     <SemVerVersion>$(Version)</SemVerVersion>
+    <CopyToPlugins Condition=" '$(CopyToPlugins)' == '' ">true</CopyToPlugins>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -114,6 +115,13 @@
     <Copy SourceFiles="manifest.json" DestinationFiles="$(IntermediateSourcePath)manifest.json" SkipUnchangedFiles="true" />
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)manifest.json" OutputFilename="$(IntermediateSourcePath)manifest.json" MatchExpression="$SEMVER_VERSION$" ReplacementText="$(SemVerVersion)" />
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)manifest.json" OutputFilename="$(IntermediateSourcePath)manifest.json" MatchExpression="$BS_VERSION$" ReplacementText="$(BeatSaberVersion)" />
+  </Target>
+  <!-- Copy the plugin to the Beat Saber installation -->
+  <Target Name="CopyToPlugins" AfterTargets="AfterBuild" Condition=" '$(CopyToPlugins)' != '' And $(CopyToPlugins) ">
+    <Message Text="Copying $(OutDir)BeatSaberHTTPStatus.dll to Plugins folder" Importance="high"/>
+    <Copy SourceFiles="$(OutDir)BeatSaberHTTPStatus.dll" DestinationFiles="$(GameDirPath)Plugins\BeatSaberHTTPStatus.dll"/>
+    <Message Text="Copying $(OutDir)websocket-sharp.dll to Beat Saber_Data folder" Importance="high"/>
+    <Copy SourceFiles="$(OutDir)websocket-sharp.dll" DestinationFiles="$(GameDirPath)Beat Saber_Data\Managed\websocket-sharp.dll"/>
   </Target>
   <!-- Package built DLLs into a zip -->
   <Target Name="CreateZip" AfterTargets="AfterBuild" Condition=" '$(OutputZip)' != '' And $(OutputZip) ">

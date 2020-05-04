@@ -1,5 +1,18 @@
+
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSaberHTTPStatus", "BeatSaberHTTPStatus\BeatSaberHTTPStatusPlugin.csproj", "{1C0571AC-F8D6-4F9E-93B2-2F23892AE61E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Useful files", "Useful files", "{2623DD3B-3EC1-43FE-AD24-5D31D1E49F28}"
+	ProjectSection(SolutionItems) = preProject
+		BeatSaberHTTPStatus\BeatSaberHTTPStatusPlugin.csproj.user = BeatSaberHTTPStatus\BeatSaberHTTPStatusPlugin.csproj.user
+		CONTRIBUTING.md = CONTRIBUTING.md
+		BeatSaberHTTPStatus\manifest.json = BeatSaberHTTPStatus\manifest.json
+		protocol.md = protocol.md
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,5 +24,11 @@ Global
 		{1C0571AC-F8D6-4F9E-93B2-2F23892AE61E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C0571AC-F8D6-4F9E-93B2-2F23892AE61E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C0571AC-F8D6-4F9E-93B2-2F23892AE61E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F5FB7413-F469-4EC8-BB25-F2574E515169}
 	EndGlobalSection
 EndGlobal
