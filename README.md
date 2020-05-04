@@ -32,6 +32,8 @@ Protocol documentation can be found in [protocol.md](protocol.md).
 
 ### Contributing to HTTP Status
 
+Before opening a pull request, please read the [contributing guide](CONTRIBUTING.md).
+
 This project uses the `websocket-sharp` library included as a git submodule. To download it, use `git submodule update --init` or clone the repository with the `--recursive` flag.
 
 To build this project you will need to create a `BeatSaberHTTPStatus/BeatSaberHTTPStatusPlugin.csproj.user` file specifying where the game is located on your disk:
@@ -48,7 +50,11 @@ To build this project you will need to create a `BeatSaberHTTPStatus/BeatSaberHT
 
 Alternatively you can provide the game DLLs in the `libs/beatsaber` directory using the standard Beat Saber directory structure. For a full list see the [project file](BeatSaberHTTPStatus/BeatSaberHTTPStatusPlugin.csproj).
 
-Before opening a pull request, please read the [contributing guide](CONTRIBUTING.md).
+The following properties can be specified either in the `.csproj.user` file or through the command line (`/p:<name>=<value>`):
+
+- `GameDirPath`: Path ending with a backslash pointing to the Beat Saber directory. Used to locate required game DLLs.
+
+- `OutputZip` = `true`/`false`: Enable/disable generating the .zip file. Can be used to get a zip for the `Debug` configuration.
 
 
 ## Credits

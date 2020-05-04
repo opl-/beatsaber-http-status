@@ -38,6 +38,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <OutputZip Condition=" '$(OutputZip)' == '' ">true</OutputZip>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HMLib">
@@ -82,7 +83,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ToCompile Include="**\*.cs" Exclude="bin\**\*;obj\**\*" />
+    <Compile Include="**\*.cs" Exclude="bin\**\*;obj\**\*" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(IntermediateOutputPath)src/manifest.json">
@@ -100,6 +101,10 @@
     <PropertyGroup>
       <IntermediateSourcePath>$(IntermediateOutputPath)src\</IntermediateSourcePath>
     </PropertyGroup>
+    <ItemGroup>
+      <ToCompile Include="@(Compile)" />
+      <Compile Remove="@(Compile)" />
+    </ItemGroup>
     <Copy SourceFiles="@(ToCompile)" DestinationFiles="@(ToCompile->'$(IntermediateSourcePath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true">
       <Output TaskParameter="CopiedFiles" ItemName="Compile" />
     </Copy>
@@ -111,7 +116,7 @@
     <ReplaceFileText InputFilename="$(IntermediateSourcePath)manifest.json" OutputFilename="$(IntermediateSourcePath)manifest.json" MatchExpression="$BS_VERSION$" ReplacementText="$(BeatSaberVersion)" />
   </Target>
   <!-- Package built DLLs into a zip -->
-  <Target Name="CreateZip" AfterTargets="AfterBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <Target Name="CreateZip" AfterTargets="AfterBuild" Condition=" '$(OutputZip)' != '' And $(OutputZip) ">
     <ItemGroup>
       <ZipFilesPlugins Include="$(OutDir)\BeatSaberHTTPStatus.dll" />
     </ItemGroup>
