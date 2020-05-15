@@ -397,8 +397,10 @@ namespace BeatSaberHTTPStatus {
 			acsb.didFinishEvent -= OnNoteWasFullyCut;
 		}
 
-		private void SetNoteCutStatus(NoteData noteData, NoteCutInfo noteCutInfo, bool initialCut) {
+		private void SetNoteCutStatus(NoteData noteData, NoteCutInfo noteCutInfo = null, bool initialCut = true) {
 			GameStatus gameStatus = statusManager.gameStatus;
+
+			gameStatus.ResetNoteCut();
 
 			gameStatus.noteID = noteData.id;
 			gameStatus.noteType = noteData.noteType.ToString();
@@ -406,31 +408,36 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.noteLine = noteData.lineIndex;
 			gameStatus.noteLayer = (int) noteData.noteLineLayer;
 			gameStatus.timeToNextBasicNote = noteData.timeToNextBasicNote;
-			gameStatus.speedOK = noteCutInfo.speedOK;
-			gameStatus.directionOK = noteCutInfo.directionOK;
-			gameStatus.saberTypeOK = noteCutInfo.saberTypeOK;
-			gameStatus.wasCutTooSoon = noteCutInfo.wasCutTooSoon;
-			gameStatus.saberSpeed = noteCutInfo.saberSpeed;
-			gameStatus.saberDirX = noteCutInfo.saberDir[0];
-			gameStatus.saberDirY = noteCutInfo.saberDir[1];
-			gameStatus.saberDirZ = noteCutInfo.saberDir[2];
-			gameStatus.saberType = noteCutInfo.saberType.ToString();
-			gameStatus.swingRating = noteCutInfo.swingRatingCounter == null ? -1 : initialCut ? noteCutInfo.swingRatingCounter.beforeCutRating : noteCutInfo.swingRatingCounter.afterCutRating;
-			gameStatus.timeDeviation = noteCutInfo.timeDeviation;
-			gameStatus.cutDirectionDeviation = noteCutInfo.cutDirDeviation;
-			gameStatus.cutPointX = noteCutInfo.cutPoint[0];
-			gameStatus.cutPointY = noteCutInfo.cutPoint[1];
-			gameStatus.cutPointZ = noteCutInfo.cutPoint[2];
-			gameStatus.cutNormalX = noteCutInfo.cutNormal[0];
-			gameStatus.cutNormalY = noteCutInfo.cutNormal[1];
-			gameStatus.cutNormalZ = noteCutInfo.cutNormal[2];
-			gameStatus.cutDistanceToCenter = noteCutInfo.cutDistanceToCenter;
+
+			if (noteCutInfo != null) {
+				gameStatus.speedOK = noteCutInfo.speedOK;
+				gameStatus.directionOK = noteCutInfo.directionOK;
+				gameStatus.saberTypeOK = noteCutInfo.saberTypeOK;
+				gameStatus.wasCutTooSoon = noteCutInfo.wasCutTooSoon;
+				gameStatus.saberSpeed = noteCutInfo.saberSpeed;
+				gameStatus.saberDirX = noteCutInfo.saberDir[0];
+				gameStatus.saberDirY = noteCutInfo.saberDir[1];
+				gameStatus.saberDirZ = noteCutInfo.saberDir[2];
+				gameStatus.saberType = noteCutInfo.saberType.ToString();
+				gameStatus.swingRating = noteCutInfo.swingRatingCounter == null ? -1 : initialCut ? noteCutInfo.swingRatingCounter.beforeCutRating : noteCutInfo.swingRatingCounter.afterCutRating;
+				gameStatus.timeDeviation = noteCutInfo.timeDeviation;
+				gameStatus.cutDirectionDeviation = noteCutInfo.cutDirDeviation;
+				gameStatus.cutPointX = noteCutInfo.cutPoint[0];
+				gameStatus.cutPointY = noteCutInfo.cutPoint[1];
+				gameStatus.cutPointZ = noteCutInfo.cutPoint[2];
+				gameStatus.cutNormalX = noteCutInfo.cutNormal[0];
+				gameStatus.cutNormalY = noteCutInfo.cutNormal[1];
+				gameStatus.cutNormalZ = noteCutInfo.cutNormal[2];
+				gameStatus.cutDistanceToCenter = noteCutInfo.cutDistanceToCenter;
+			}
 		}
 
 		public void OnNoteWasMissed(NoteData noteData, int multiplier) {
 			// Event order: combo, multiplier, scoreController.noteWasMissed, (LateUpdate) scoreController.scoreDidChange
 
 			statusManager.gameStatus.batteryEnergy = gameEnergyCounter.batteryEnergy;
+
+			SetNoteCutStatus(noteData);
 
 			if (noteData.noteType == NoteType.Bomb) {
 				statusManager.gameStatus.passedBombs++;
