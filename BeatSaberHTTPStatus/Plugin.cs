@@ -442,12 +442,12 @@ namespace BeatSaberHTTPStatus {
 			if (noteData.noteType == NoteType.Bomb) {
 				statusManager.gameStatus.passedBombs++;
 
-				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "bombMissed");
+				statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "bombMissed");
 			} else {
 				statusManager.gameStatus.passedNotes++;
 				statusManager.gameStatus.missedNotes++;
 
-				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "noteMissed");
+				statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteMissed");
 			}
 		}
 
