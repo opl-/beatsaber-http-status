@@ -494,7 +494,7 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public static long GetCurrentTime() {
-			return (long) (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).Ticks / TimeSpan.TicksPerMillisecond);
+			return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 		}
 
 		public class PluginTickerScript : PersistentSingleton<PluginTickerScript> {
