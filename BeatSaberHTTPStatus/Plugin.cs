@@ -20,7 +20,7 @@ using IPALogger = IPA.Logging.Logger;
 namespace BeatSaberHTTPStatus {
 	[Plugin(RuntimeOptions.SingleStartInit)]
 	internal class Plugin {
-		private bool initialized;
+		public static Plugin instance {get; private set;}
 
 		private StatusManager statusManager = new StatusManager();
 		private HTTPServer server;
@@ -70,8 +70,10 @@ namespace BeatSaberHTTPStatus {
 
 		[OnStart]
 		public void OnApplicationStart() {
-			if (initialized) return;
-			initialized = true;
+			if (instance != null) return;
+			instance = this;
+
+			PluginTickerScript.TouchInstance();
 
 			server = new HTTPServer(statusManager);
 			server.InitServer();
@@ -495,8 +497,10 @@ namespace BeatSaberHTTPStatus {
 			return (long) (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).Ticks / TimeSpan.TicksPerMillisecond);
 		}
 
-		public void OnFixedUpdate() {}
-		public void OnSceneLoaded(Scene scene, LoadSceneMode mode) {}
-		public void OnSceneUnloaded(Scene scene) {}
+		public class PluginTickerScript : PersistentSingleton<PluginTickerScript> {
+			public void Update() {
+				if (Plugin.instance != null) Plugin.instance.OnUpdate();
+			}
+		}
 	}
 }
