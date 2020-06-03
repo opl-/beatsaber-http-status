@@ -113,7 +113,7 @@ namespace BeatSaberHTTPStatus {
 			server.StopServer();
 		}
 
-		public void OnActiveSceneChanged(Scene oldScene, Scene newScene) {
+		public async void OnActiveSceneChanged(Scene oldScene, Scene newScene) {
 			GameStatus gameStatus = statusManager.gameStatus;
 
 			gameStatus.scene = newScene.name;
@@ -221,7 +221,7 @@ namespace BeatSaberHTTPStatus {
 
 				try {
 					// From https://support.unity3d.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
-					var texture = level.GetCoverImageTexture2DAsync(CancellationToken.None).Result;
+					var texture = await level.GetCoverImageTexture2DAsync(CancellationToken.None);
 					var active = RenderTexture.active;
 					var temporary = RenderTexture.GetTemporary(
 						texture.width,
