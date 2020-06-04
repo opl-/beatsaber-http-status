@@ -223,7 +223,7 @@ Fired when a note is missed.
 
 Contains only the `performance` property of [Status object](#status-object).
 
-Contains `noteCut` property with an object value as described in [Note cut object](#note-cut-object) or `null` if the note wasn't cut at all.
+Contains the `noteCut` property with an object value as described in [Note cut object](#note-cut-object). Only the properties describing the note data will be set, leaving the cut and swing related properties with their default values.
 
 ### `bombCut` event
 
@@ -236,6 +236,8 @@ Contains only the `performance` property of [Status object](#status-object) and 
 Fired when a bomb is missed.
 
 Contains only the `performance` property of [Status object](#status-object).
+
+Contains the `noteCut` property with an object value as described in [Note cut object](#note-cut-object). Only the properties describing the note data will be set, leaving the cut and swing related properties with their default values.
 
 ### `obstacleEnter` event
 
