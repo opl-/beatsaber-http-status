@@ -204,8 +204,8 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.levelAuthorName = level.levelAuthorName;
 				gameStatus.songBPM = level.beatsPerMinute;
 				gameStatus.noteJumpSpeed = diff.noteJumpMovementSpeed;
-				// 13 is a magical number for the length of "custom_level_"
-				gameStatus.songHash = level.levelID.StartsWith("custom_level_") && !level.levelID.EndsWith(" WIP") ? level.levelID.Substring(13) : null;
+				// 13 is "custom_level_" and 40 is the magic number for the length of the SHA-1 hash
+				gameStatus.songHash = level.levelID.StartsWith("custom_level_") && !level.levelID.EndsWith(" WIP") ? level.levelID.Substring(13, 40) : null;
 				gameStatus.levelId = level.levelID;
 				gameStatus.songTimeOffset = (long) (level.songTimeOffset * 1000f / songSpeedMul);
 				gameStatus.length = (long) (level.beatmapLevelData.audioClip.length * 1000f / songSpeedMul);
