@@ -7,21 +7,23 @@ This plugin exposes information about the current game status, live over a WebSo
 
 ### Recommended (using a mod manager)
 
-You can install Beat Saber HTTP Status by using [one of the mod installers listed here](https://bsmg.wiki/beginners-guide). Follow the steps required to run the program of your choice, then in the mods section find "HTTP Status" and install it. This will automatically install and keep up to date everything you need.
+You can install Beat Saber HTTP Status by using [one of the mod installers listed here](https://bsmg.wiki/pc-modding.html). Follow the steps required to run the program of your choice, then in the mods section find "HTTP Status" and install it. This will automatically install and keep everything you need up to date.
 
 Next you will need to [get additional software](https://github.com/opl-/beatsaber-http-status/wiki/Software-using-this-plugin) that uses this plugin. **This plugin does nothing useful on its own; it simply exposes information for other programs to use.**
 
 ### Manual
 
-1. Download the latest release from the [releases page](https://github.com/opl-/beatsaber-http-status/releases).
+1. Install [BSIPA](https://bsmg.github.io/BeatSaber-IPA-Reloaded/) [(BSMG guide)](https://bsmg.wiki/pc-modding.html#manual-installation).
 
-2. Extract the zip into your Beat Saber directory.
+2. Download the latest release from the [releases page](https://github.com/opl-/beatsaber-http-status/releases).
 
-3. Download and extract the following plugins and their dependencies:
+3. Extract the zip into your Beat Saber directory.
+
+4. Download and extract the following plugins and their dependencies:
 
 	- BS Utils from [BeatMods](https://beatmods.com/#/mods)
 
-4. [Get additional software](https://github.com/opl-/beatsaber-http-status/wiki/Software-using-this-plugin) that makes use of this plugin. This mod does nothing on its own; it simply exposes information for other programs to use.
+5. [Get additional software](https://github.com/opl-/beatsaber-http-status/wiki/Software-using-this-plugin) that makes use of this plugin. This mod does nothing on its own; it simply exposes information for other programs to use.
 
 
 ## Developers
