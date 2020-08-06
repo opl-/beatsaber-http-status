@@ -148,7 +148,9 @@ NoteCutObject = {
 
 ### Beatmap event object
 
-Basic references for event types and values can be found here: <https://steamcommunity.com/sharedfiles/filedetails/?id=1377190061>
+An explanation of the beatmap events system can be found here: <https://bsmg.wiki/mapping/basic-lighting.html>
+
+Meanings of the different integer values can be derived from here: <https://github.com/Caeden117/ChroMapper/blob/master/Assets/__Scripts/Map/Events/MapEvent.cs>
 
 ```js
 BeatmapEvent = {
