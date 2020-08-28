@@ -44,13 +44,16 @@ namespace BeatSaberHTTPStatus {
 				res.ContentType = "application/json";
 				res.ContentEncoding = Encoding.UTF8;
 
-				res.WriteContent(Encoding.UTF8.GetBytes(statusManager.statusJSON.ToString()));
+				var stringifiedStatus = Encoding.UTF8.GetBytes(statusManager.statusJSON.ToString());
+
+				res.ContentLength64 = stringifiedStatus.Length;
+				res.Close(stringifiedStatus, false);
 
 				return;
 			}
 
 			res.StatusCode = 404;
-			res.WriteContent(new byte[] {});
+			res.Close();
 		}
 	}
 
