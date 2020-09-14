@@ -1,11 +1,14 @@
 ﻿{
-  "$schema": "https://raw.githubusercontent.com/beat-saber-modding-group/BSIPA-MetadataFileSchema/master/Schema.json",
+  "$schema": "https://raw.githubusercontent.com/bsmg/BSIPA-MetadataFileSchema/master/Schema.json",
   "author": "opl",
   "description": "This plugin exposes information about the current game status, live over a WebSocket and over HTTP.",
   "gameVersion": "$BS_VERSION$",
   "id": "BeatSaberHTTPStatus",
   "name": "Beat Saber HTTP Status",
   "version": "$SEMVER_VERSION$",
+  "dependsOn": {
+    "BSIPA": "^4.0.5"
+  },
   "links": {
     "project-home": "https://github.com/opl-/beatsaber-http-status",
     "project-source": "https://github.com/opl-/beatsaber-http-status"
