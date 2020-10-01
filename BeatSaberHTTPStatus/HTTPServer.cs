@@ -73,7 +73,7 @@ namespace BeatSaberHTTPStatus {
 			eventJSON["time"] = new JSONNumber(Plugin.GetCurrentTime());
 			eventJSON["status"] = statusManager.statusJSON;
 
-			Send(eventJSON.ToString());
+			SendAsync(eventJSON.ToString(), b => {});
 		}
 
 		protected override void OnClose(CloseEventArgs e) {
@@ -108,7 +108,7 @@ namespace BeatSaberHTTPStatus {
 				eventJSON["beatmapEvent"] = statusManager.beatmapEventJSON;
 			}
 
-			Send(eventJSON.ToString());
+			SendAsync(eventJSON.ToString(), b => {});
 		}
 	}
 }
