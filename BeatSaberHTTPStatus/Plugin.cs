@@ -28,7 +28,7 @@ namespace BeatSaberHTTPStatus {
 		private bool headInObstacle = false;
 
 		private GameplayCoreSceneSetupData gameplayCoreSceneSetupData;
-		private GamePause gamePause;
+		private PauseController pauseController;
 		private ScoreController scoreController;
 		private StandardLevelGameplayManager standardLevelGameplayManager;
 		private MissionLevelGameplayManager missionLevelGameplayManager;
@@ -40,7 +40,15 @@ namespace BeatSaberHTTPStatus {
 		private PlayerHeadAndObstacleInteraction playerHeadAndObstacleInteraction;
 		private GameEnergyCounter gameEnergyCounter;
 		private Dictionary<NoteCutInfo, NoteData> noteCutMapping = new Dictionary<NoteCutInfo, NoteData>();
+		/// <summary>
+		/// Beat Saber 1.12.1 removes NoteData.id, forcing us to generate our own note IDs to allow users to easily link events about the same note.
+		/// Before 1.12.1 the noteID matched the note order in the beatmap file, but this is impossible to replicate now without hooking into the level loading code.
+		/// </summary>
+		private NoteData[] noteToIdMapping = null;
+		private int lastNoteId = 0;
 
+		/// private PlayerHeadAndObstacleInteraction ScoreController._playerHeadAndObstacleInteraction;
+		private FieldInfo scoreControllerHeadAndObstacleInteractionField = typeof(ScoreController).GetField("_playerHeadAndObstacleInteraction", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 		/// protected NoteCutInfo CutScoreBuffer._noteCutInfo
 		private FieldInfo noteCutInfoField = typeof(CutScoreBuffer).GetField("_noteCutInfo", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 		/// protected List<CutScoreBuffer> ScoreController._cutScoreBuffers // contains a list of after cut buffers
@@ -85,9 +93,9 @@ namespace BeatSaberHTTPStatus {
 		public void OnApplicationQuit() {
 			SceneManager.activeSceneChanged -= OnActiveSceneChanged;
 
-			if (gamePause != null) {
-				gamePause.didPauseEvent -= OnGamePause;
-				gamePause.didResumeEvent -= OnGameResume;
+			if (pauseController != null) {
+				pauseController.didPauseEvent -= OnGamePause;
+				pauseController.didResumeEvent -= OnGameResume;
 			}
 
 			if (scoreController != null) {
@@ -134,18 +142,21 @@ namespace BeatSaberHTTPStatus {
 				// Release references for AfterCutScoreBuffers that don't resolve due to player leaving the map before finishing.
 				noteCutMapping.Clear();
 
+				// Clear note id mappings.
+				noteToIdMapping = null;
+
 				statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "menu");
 			} else if (newScene.name == "GameCore") {
 				// In game
 				gameStatus.scene = "Song";
 
-				gamePause = FindFirstOrDefault<GamePause>();
+				pauseController = FindFirstOrDefault<PauseController>();
 				scoreController = FindFirstOrDefault<ScoreController>();
 				gameplayManager = Resources.FindObjectsOfTypeAll<StandardLevelGameplayManager>().FirstOrDefault() as MonoBehaviour ?? Resources.FindObjectsOfTypeAll<MissionLevelGameplayManager>().FirstOrDefault();
 				beatmapObjectCallbackController = FindFirstOrDefault<BeatmapObjectCallbackController>();
 				gameplayModifiersSO = FindFirstOrDefault<GameplayModifiersModelSO>();
 				audioTimeSyncController = FindFirstOrDefault<AudioTimeSyncController>();
-				playerHeadAndObstacleInteraction = FindFirstOrDefault<PlayerHeadAndObstacleInteraction>();
+				playerHeadAndObstacleInteraction = (PlayerHeadAndObstacleInteraction) scoreControllerHeadAndObstacleInteractionField.GetValue(scoreController);
 				gameEnergyCounter = FindFirstOrDefault<GameEnergyCounter>();
 
 				if (gameplayManager.GetType() == typeof(StandardLevelGameplayManager)) {
@@ -167,10 +178,10 @@ namespace BeatSaberHTTPStatus {
 				gameplayCoreSceneSetupData = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData;
 
 				// Register event listeners
-				// public event Action GamePause#didPauseEvent;
-				gamePause.didPauseEvent += OnGamePause;
-				// public event Action GamePause#didResumeEvent;
-				gamePause.didResumeEvent += OnGameResume;
+				// public event Action PauseController#didPauseEvent;
+				pauseController.didPauseEvent += OnGamePause;
+				// public event Action PauseController#didResumeEvent;
+				pauseController.didResumeEvent += OnGameResume;
 				// public ScoreController#noteWasCutEvent<NoteData, NoteCutInfo, int multiplier> // called after AfterCutScoreBuffer is created
 				scoreController.noteWasCutEvent += OnNoteWasCut;
 				// public ScoreController#noteWasMissedEvent<NoteData, int multiplier>
@@ -198,6 +209,19 @@ namespace BeatSaberHTTPStatus {
 				if (practiceSettings != null) songSpeedMul = practiceSettings.songSpeedMul;
 				float modifierMultiplier = gameplayModifiersSO.GetTotalMultiplier(gameplayModifiers);
 
+				// Generate NoteData to id mappings for backwards compatiblity with <1.12.1
+				noteToIdMapping = new NoteData[diff.beatmapData.cuttableNotesType + diff.beatmapData.bombsCount];
+				lastNoteId = 0;
+
+				int beatmapObjectId = 0;
+				var beatmapObjectsData = diff.beatmapData.beatmapObjectsData;
+
+				foreach (BeatmapObjectData beatmapObjectData in beatmapObjectsData) {
+					if (beatmapObjectData is NoteData noteData) {
+						noteToIdMapping[beatmapObjectId++] = noteData;
+					}
+				}
+
 				gameStatus.songName = level.songName;
 				gameStatus.songSubName = level.songSubName;
 				gameStatus.songAuthorName = level.songAuthorName;
@@ -213,17 +237,17 @@ namespace BeatSaberHTTPStatus {
 				if (practiceSettings != null) gameStatus.start -= (long) (practiceSettings.startSongTime * 1000f / songSpeedMul);
 				gameStatus.paused = 0;
 				gameStatus.difficulty = diff.difficulty.Name();
-				gameStatus.notesCount = diff.beatmapData.notesCount;
+				gameStatus.notesCount = diff.beatmapData.cuttableNotesType;
 				gameStatus.bombsCount = diff.beatmapData.bombsCount;
 				gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
 				gameStatus.environmentName = level.environmentInfo.sceneInfo.sceneName;
 
-				gameStatus.maxScore = gameplayModifiersSO.MaxModifiedScoreForMaxRawScore(ScoreModel.MaxRawScoreForNumberOfNotes(diff.beatmapData.notesCount), gameplayModifiers, gameplayModifiersSO);
-				gameStatus.maxRank = RankModel.MaxRankForGameplayModifiers(gameplayModifiers, gameplayModifiersSO).ToString();
+				gameStatus.maxScore = gameplayModifiersSO.MaxModifiedScoreForMaxRawScore(ScoreModel.MaxRawScoreForNumberOfNotes(diff.beatmapData.cuttableNotesType), gameplayModifiers, gameplayModifiersSO);
+				gameStatus.maxRank = RankModelHelper.MaxRankForGameplayModifiers(gameplayModifiers, gameplayModifiersSO).ToString();
 
 				try {
 					// From https://support.unity3d.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
-					var texture = await level.GetCoverImageTexture2DAsync(CancellationToken.None);
+					var texture = (await level.GetCoverImageAsync(CancellationToken.None)).texture;
 					var active = RenderTexture.active;
 					var temporary = RenderTexture.GetTemporary(
 						texture.width,
@@ -259,7 +283,7 @@ namespace BeatSaberHTTPStatus {
 				gameStatus.modObstacles = gameplayModifiers.enabledObstacleType.ToString();
 				gameStatus.modInstaFail = gameplayModifiers.instaFail;
 				gameStatus.modNoFail = gameplayModifiers.noFail;
-				gameStatus.modBatteryEnergy = gameplayModifiers.batteryEnergy;
+				gameStatus.modBatteryEnergy = gameplayModifiers.energyType == GameplayModifiers.EnergyType.Battery;
 				gameStatus.modDisappearingArrows = gameplayModifiers.disappearingArrows;
 				gameStatus.modNoBombs = gameplayModifiers.noBombs;
 				gameStatus.modSongSpeed = gameplayModifiers.songSpeed.ToString();
@@ -340,7 +364,7 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.cutDistanceScore = cutDistanceScore;
 			gameStatus.cutMultiplier = multiplier;
 
-			if (noteData.noteType == NoteType.Bomb) {
+			if (noteData.colorType == ColorType.None) {
 				gameStatus.passedBombs++;
 				gameStatus.hitBombs++;
 
@@ -404,12 +428,33 @@ namespace BeatSaberHTTPStatus {
 
 			gameStatus.ResetNoteCut();
 
-			gameStatus.noteID = noteData.id;
-			gameStatus.noteType = noteData.noteType.ToString();
+			// Backwards compatibility for <1.12.1
+			gameStatus.noteID = -1;
+			// Check the near notes first for performance
+			for (int i = Math.Max(0, lastNoteId - 10); i < noteToIdMapping.Length; i++) {
+				if (NoteDataEquals(noteToIdMapping[i], noteData)) {
+					gameStatus.noteID = i;
+					if (i > lastNoteId) lastNoteId = i;
+					break;
+				}
+			}
+			// If that failed, check the rest of the notes in reverse order
+			if (gameStatus.noteID == -1) {
+				for (int i = Math.Max(0, lastNoteId - 11); i >= 0; i--) {
+					if (NoteDataEquals(noteToIdMapping[i], noteData)) {
+						gameStatus.noteID = i;
+						break;
+					}
+				}
+			}
+
+			// Backwards compatibility for <1.12.1
+			gameStatus.noteType = noteData.colorType == ColorType.None ? "Bomb" : noteData.colorType == ColorType.ColorA ? "NoteA" : noteData.colorType == ColorType.ColorB ? "NoteB" : noteData.colorType.ToString();
 			gameStatus.noteCutDirection = noteData.cutDirection.ToString();
 			gameStatus.noteLine = noteData.lineIndex;
 			gameStatus.noteLayer = (int) noteData.noteLineLayer;
-			gameStatus.timeToNextBasicNote = noteData.timeToNextBasicNote;
+			// If long notes are ever introduced, this name will make no sense
+			gameStatus.timeToNextBasicNote = noteData.timeToNextColorNote;
 
 			if (noteCutInfo != null) {
 				gameStatus.speedOK = noteCutInfo.speedOK;
@@ -441,7 +486,7 @@ namespace BeatSaberHTTPStatus {
 
 			SetNoteCutStatus(noteData);
 
-			if (noteData.noteType == NoteType.Bomb) {
+			if (noteData.colorType == ColorType.None) {
 				statusManager.gameStatus.passedBombs++;
 
 				statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "bombMissed");
@@ -495,6 +540,10 @@ namespace BeatSaberHTTPStatus {
 
 		public static long GetCurrentTime() {
 			return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+		}
+
+		public static bool NoteDataEquals(NoteData a, NoteData b) {
+			return a.time == b.time && a.lineIndex == b.lineIndex && a.noteLineLayer == b.noteLineLayer && a.colorType == b.colorType && a.cutDirection == b.cutDirection && a.duration == b.duration;
 		}
 
 		public class PluginTickerScript : PersistentSingleton<PluginTickerScript> {

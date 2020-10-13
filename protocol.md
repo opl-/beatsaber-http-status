@@ -109,7 +109,7 @@ StatusObject = {
 ```js
 NoteCutObject = {
 	"noteID": Integer, // ID of the note
-	"noteType": "NoteA" | "NoteB" | "GhostNote" | "Bomb", // Type of note
+	"noteType": "NoteA" | "NoteB" | "Bomb", // Type of note
 	"noteCutDirection": "Up" | "Down" | "Left" | "Right" | "UpLeft" | "UpRight" | "DownLeft" | "DownRight" | "Any" | "None", // Direction the note is supposed to be cut in
 	"noteLine": Integer, // The horizontal position of the note, from left to right [0..3]
 	"noteLayer": Integer, // The vertical position of the note, from bottom to top [0..2]

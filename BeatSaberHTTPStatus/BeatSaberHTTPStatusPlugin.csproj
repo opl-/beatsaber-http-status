@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <Version>1.11.3</Version>
-    <BeatSaberVersion>1.11.0</BeatSaberVersion>
+    <BeatSaberVersion>1.12.1</BeatSaberVersion>
     <GameDirPath>..\libs\beatsaber\</GameDirPath>
     <SemVerVersion>$(Version)</SemVerVersion>
     <CopyToPlugins Condition=" '$(CopyToPlugins)' == '' ">true</CopyToPlugins>
@@ -52,6 +52,14 @@
     </Reference>
     <Reference Include="Main">
       <HintPath>$(GameDirPath)\Beat Saber_Data\Managed\Main.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="BeatmapCore">
+      <HintPath>$(GameDirPath)\Beat Saber_Data\Managed\BeatmapCore.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="GameplayCore">
+      <HintPath>$(GameDirPath)\Beat Saber_Data\Managed\GameplayCore.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
