@@ -34,8 +34,8 @@ StatusObject = {
 	"game": {
 		"pluginVersion": String, // Currently running version of the plugin
 		"gameVersion": String, // Version of the game the current plugin version is targetting
-		"scene": "Menu" | "Song", // Indicates player's current activity
-		"mode": null | "SoloStandard" | "SoloOneSaber" | "SoloNoArrows" | "PartyStandard" | "PartyOneSaber" | "PartyNoArrows",
+		"scene": "Menu" | "Song" | "Spectator", // Indicates player's current activity
+		"mode": null | "SoloStandard" | "SoloOneSaber" | "SoloNoArrows" | "PartyStandard" | "PartyOneSaber" | "PartyNoArrows" | "MultiplayerStandard" | "MultiplayerOneSaber" | "MultiplayerNoArrows", // Composed of game mode and map characteristic
 	},
 	"beatmap": null | {
 		"songName": String, // Song name
@@ -171,7 +171,11 @@ Contains the full [Status object](#status-object).
 
 ### `songStart` event
 
-Fired when the `GameCore` scene is activated.
+Fired when the `GameCore` scene is activated. In case of multiplayer, this is delayed until the countdown starts.
+
+If the player is spectating at the beginning of the song, `game.scene` will be set to `Spectator` and only beatmap events will be fired.
+
+If the player fails the map but other players are still alive, the `failed` event will be fired and the `menu` event will be delayed until after the map is over.
 
 Contains the full [Status object](#status-object).
 
@@ -189,7 +193,7 @@ Contains only the `performance` property of [Status object](#status-object).
 
 ### `menu` event
 
-Fired when the `Menu` scene is activated.
+Fired when the `Menu` scene is activated. In case of multiplayer, this happens whenever the room enters the lobby.
 
 Contains the full [Status object](#status-object).
 

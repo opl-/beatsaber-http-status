@@ -64,7 +64,8 @@ namespace BeatSaberHTTPStatus {
 			gameJSON["pluginVersion"] = BeatSaberHTTPStatus.Plugin.PluginVersion;
 			gameJSON["gameVersion"] = BeatSaberHTTPStatus.Plugin.GameVersion;
 			gameJSON["scene"] = stringOrNull(gameStatus.scene);
-			gameJSON["mode"] = stringOrNull(gameStatus.mode == null ? null : (gameStatus.partyMode ? "Party" : "Solo") + gameStatus.mode);
+			// This was an awful idea.
+			gameJSON["mode"] = stringOrNull(gameStatus.mode == null ? null : (gameStatus.multiplayer ? "Multiplayer" : gameStatus.partyMode ? "Party" : "Solo") + gameStatus.mode);
 		}
 
 		private void UpdateBeatmapJSON() {

@@ -30,14 +30,15 @@ namespace BeatSaberHTTPStatus {
 		private GameplayCoreSceneSetupData gameplayCoreSceneSetupData;
 		private PauseController pauseController;
 		private ScoreController scoreController;
-		private StandardLevelGameplayManager standardLevelGameplayManager;
-		private MissionLevelGameplayManager missionLevelGameplayManager;
+		private MultiplayerSessionManager multiplayerSessionManager;
+		private MultiplayerController multiplayerController;
 		private MonoBehaviour gameplayManager;
 		private GameplayModifiersModelSO gameplayModifiersSO;
 		private GameplayModifiers gameplayModifiers;
 		private AudioTimeSyncController audioTimeSyncController;
 		private BeatmapObjectCallbackController beatmapObjectCallbackController;
 		private PlayerHeadAndObstacleInteraction playerHeadAndObstacleInteraction;
+		private GameSongController gameSongController;
 		private GameEnergyCounter gameEnergyCounter;
 		private Dictionary<NoteCutInfo, NoteData> noteCutMapping = new Dictionary<NoteCutInfo, NoteData>();
 		/// <summary>
@@ -46,6 +47,11 @@ namespace BeatSaberHTTPStatus {
 		/// </summary>
 		private NoteData[] noteToIdMapping = null;
 		private int lastNoteId = 0;
+		/// <summary>
+		/// This is used to delay the `HandleSongStart` call by a single frame when not in multiplayer, to ensure that all resources exist.<br/>
+		/// This isn't necessary in multiplayer since Zenject (which I'm currently regretting not using) has time to do its thing there before our code runs. Yeah, I hate this.
+		/// </summary>
+		private bool doDelayedSongStart = false;
 
 		/// private PlayerHeadAndObstacleInteraction ScoreController._playerHeadAndObstacleInteraction;
 		private FieldInfo scoreControllerHeadAndObstacleInteractionField = typeof(ScoreController).GetField("_playerHeadAndObstacleInteraction", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
@@ -87,15 +93,35 @@ namespace BeatSaberHTTPStatus {
 			server.InitServer();
 			
 			SceneManager.activeSceneChanged += OnActiveSceneChanged;
+
+			Gamemode.Init();
 		}
 
 		[OnExit]
 		public void OnApplicationQuit() {
 			SceneManager.activeSceneChanged -= OnActiveSceneChanged;
 
+			CleanUpSong();
+
+			CleanUpMultiplayer();
+
+			server.StopServer();
+		}
+
+		private void CleanUpSong() {
+			statusManager.gameStatus.ResetMapInfo();
+			statusManager.gameStatus.ResetPerformance();
+
+			// Release references for AfterCutScoreBuffers that don't resolve due to player leaving the map before finishing.
+			noteCutMapping.Clear();
+
+			// Clear note id mappings.
+			noteToIdMapping = null;
+
 			if (pauseController != null) {
 				pauseController.didPauseEvent -= OnGamePause;
 				pauseController.didResumeEvent -= OnGameResume;
+				pauseController = null;
 			}
 
 			if (scoreController != null) {
@@ -104,206 +130,284 @@ namespace BeatSaberHTTPStatus {
 				scoreController.scoreDidChangeEvent -= OnScoreDidChange;
 				scoreController.comboDidChangeEvent -= OnComboDidChange;
 				scoreController.multiplierDidChangeEvent -= OnMultiplierDidChange;
+				scoreController = null;
 			}
 
-			if (standardLevelGameplayManager != null) {
-				standardLevelGameplayManager.levelFinishedEvent -= OnLevelFinished;
-				standardLevelGameplayManager.levelFailedEvent -= OnLevelFailed;
-			}
-
-			if (missionLevelGameplayManager != null) {
-				missionLevelGameplayManager.levelFinishedEvent -= OnLevelFinished;
-				missionLevelGameplayManager.levelFailedEvent -= OnLevelFailed;
+			if (gameplayManager != null) {
+				gameplayManager = null;
 			}
 
 			if (beatmapObjectCallbackController != null) {
 				beatmapObjectCallbackController.beatmapEventDidTriggerEvent -= OnBeatmapEventDidTrigger;
+				beatmapObjectCallbackController = null;
 			}
 
-			server.StopServer();
+			if (gameplayModifiersSO != null) {
+				gameplayModifiersSO = null;
+			}
+
+			if (audioTimeSyncController != null) {
+				audioTimeSyncController = null;
+			}
+
+			if (playerHeadAndObstacleInteraction != null) {
+				playerHeadAndObstacleInteraction = null;
+			}
+
+			if (gameSongController != null) {
+				gameSongController.songDidFinishEvent -= OnLevelFinished;
+				gameSongController = null;
+			}
+
+			if (gameEnergyCounter != null) {
+				gameEnergyCounter.gameEnergyDidReach0Event -= OnLevelFailed;
+			}
+
+			if (gameplayCoreSceneSetupData != null) {
+				gameplayCoreSceneSetupData = null;
+			}
+
+			if (gameplayModifiers != null) {
+				gameplayModifiers = null;
+			}
 		}
 
-		public async void OnActiveSceneChanged(Scene oldScene, Scene newScene) {
+		private void CleanUpMultiplayer() {
+			if (multiplayerSessionManager != null) {
+				multiplayerSessionManager.disconnectedEvent -= OnMultiplayerDisconnected;
+				multiplayerSessionManager = null;
+			}
+
+			if (multiplayerController != null) {
+				multiplayerController.stateChangedEvent -= OnMultiplayerStateChanged;
+				multiplayerController = null;
+			}
+		}
+
+		public void OnActiveSceneChanged(Scene oldScene, Scene newScene) {
+			log.Info("scene.name=" + newScene.name);
 			GameStatus gameStatus = statusManager.gameStatus;
 
 			gameStatus.scene = newScene.name;
 
 			if (newScene.name == "MenuCore") {
 				// Menu
-				gameStatus.scene = "Menu";
-
-				Gamemode.Init();
-
 				// TODO: get the current song, mode and mods while in menu
-				gameStatus.ResetMapInfo();
-
-				gameStatus.ResetPerformance();
-
-				// Release references for AfterCutScoreBuffers that don't resolve due to player leaving the map before finishing.
-				noteCutMapping.Clear();
-
-				// Clear note id mappings.
-				noteToIdMapping = null;
-
-				statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "menu");
+				HandleMenuStart();
 			} else if (newScene.name == "GameCore") {
 				// In game
-				gameStatus.scene = "Song";
+				HandleSongStart();
+			}
+		}
 
-				pauseController = FindFirstOrDefault<PauseController>();
-				scoreController = FindFirstOrDefault<ScoreController>();
-				gameplayManager = Resources.FindObjectsOfTypeAll<StandardLevelGameplayManager>().FirstOrDefault() as MonoBehaviour ?? Resources.FindObjectsOfTypeAll<MissionLevelGameplayManager>().FirstOrDefault();
-				beatmapObjectCallbackController = FindFirstOrDefault<BeatmapObjectCallbackController>();
-				gameplayModifiersSO = FindFirstOrDefault<GameplayModifiersModelSO>();
-				audioTimeSyncController = FindFirstOrDefault<AudioTimeSyncController>();
-				playerHeadAndObstacleInteraction = (PlayerHeadAndObstacleInteraction) scoreControllerHeadAndObstacleInteractionField.GetValue(scoreController);
-				gameEnergyCounter = FindFirstOrDefault<GameEnergyCounter>();
+		public void HandleMenuStart() {
+			GameStatus gameStatus = statusManager.gameStatus;
 
-				if (gameplayManager.GetType() == typeof(StandardLevelGameplayManager)) {
-					Plugin.log.Info("Standard Level loaded");
-					standardLevelGameplayManager = FindFirstOrDefault<StandardLevelGameplayManager>();
-					// public event Action StandardLevelGameplayManager#levelFailedEvent;
-					standardLevelGameplayManager.levelFailedEvent += OnLevelFailed;
-					// public event Action StandardLevelGameplayManager#levelFinishedEvent;
-					standardLevelGameplayManager.levelFinishedEvent += OnLevelFinished;
-				} else if (gameplayManager.GetType() == typeof(MissionLevelGameplayManager)) {
-					Plugin.log.Info("Mission Level loaded");
-					missionLevelGameplayManager = FindFirstOrDefault<MissionLevelGameplayManager>();
-					// public event Action StandardLevelGameplayManager#levelFailedEvent;
-					missionLevelGameplayManager.levelFailedEvent += OnLevelFailed;
-					// public event Action StandardLevelGameplayManager#levelFinishedEvent;
-					missionLevelGameplayManager.levelFinishedEvent += OnLevelFinished;
+			gameStatus.scene = "Menu";
+
+			CleanUpSong();
+
+			statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "menu");
+		}
+
+		public async void HandleSongStart() {
+			GameStatus gameStatus = statusManager.gameStatus;
+			log.Info("0");
+
+			// Check for multiplayer early to abort if needed: gameplay controllers don't exist in multiplayer until later
+			multiplayerSessionManager = FindFirstOrDefaultOptional<MultiplayerSessionManager>();
+			multiplayerController = FindFirstOrDefaultOptional<MultiplayerController>();
+
+			if (multiplayerSessionManager && multiplayerController) {
+				Plugin.log.Info("Multiplayer Level loaded");
+
+				// public event Action<DisconnectedReason> MultiplayerSessionManager#disconnectedEvent;
+				multiplayerSessionManager.disconnectedEvent += OnMultiplayerDisconnected;
+
+				// public event Action<State> MultiplayerController#stateChangedEvent;
+				multiplayerController.stateChangedEvent += OnMultiplayerStateChanged;
+
+				log.Info("multiplayer state = " + multiplayerController.state);
+
+				// Do nothing until the next state change to Gameplay.
+				if (multiplayerController.state != MultiplayerController.State.Gameplay) {
+					return;
 				}
+			} else if (!doDelayedSongStart) {
+				doDelayedSongStart = true;
 
-				gameplayCoreSceneSetupData = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData;
+				return;
+			}
 
-				// Register event listeners
+			// `wants_to_play_next_level` is set for players who don't want to play the song aka want to spectate aka are not "active". `isSpectating` is apparently not spectating.
+			gameStatus.scene = multiplayerSessionManager.isSpectating || !multiplayerSessionManager.LocalPlayerHasState(NetworkConstants.wantsToPlayNextLevel) ? "Spectator" : "Song";
+			gameStatus.multiplayer = multiplayerSessionManager.isConnectingOrConnected;
+
+			pauseController = FindFirstOrDefaultOptional<PauseController>();
+			scoreController = FindFirstOrDefault<ScoreController>();
+			gameplayManager = FindFirstOrDefaultOptional<StandardLevelGameplayManager>() as MonoBehaviour ?? FindFirstOrDefaultOptional<MissionLevelGameplayManager>();
+			beatmapObjectCallbackController = FindFirstOrDefault<BeatmapObjectCallbackController>();
+			gameplayModifiersSO = FindFirstOrDefault<GameplayModifiersModelSO>();
+			audioTimeSyncController = FindFirstOrDefault<AudioTimeSyncController>();
+			playerHeadAndObstacleInteraction = (PlayerHeadAndObstacleInteraction) scoreControllerHeadAndObstacleInteractionField.GetValue(scoreController);
+			gameSongController = FindFirstOrDefault<GameSongController>();
+			gameEnergyCounter = FindFirstOrDefault<GameEnergyCounter>();
+
+			if (multiplayerController) {
+				// NOOP
+			} else if (gameplayManager is StandardLevelGameplayManager) {
+				Plugin.log.Info("Standard Level loaded");
+			} else if (gameplayManager is MissionLevelGameplayManager) {
+				Plugin.log.Info("Mission Level loaded");
+			}
+
+			gameplayCoreSceneSetupData = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData;
+			log.Info("2");
+			log.Info("scoreController=" + scoreController);
+
+			// Register event listeners
+			// PauseController doesn't exist in multiplayer
+			if (pauseController != null) {
+				log.Info("pauseController=" + pauseController);
 				// public event Action PauseController#didPauseEvent;
 				pauseController.didPauseEvent += OnGamePause;
 				// public event Action PauseController#didResumeEvent;
 				pauseController.didResumeEvent += OnGameResume;
-				// public ScoreController#noteWasCutEvent<NoteData, NoteCutInfo, int multiplier> // called after AfterCutScoreBuffer is created
-				scoreController.noteWasCutEvent += OnNoteWasCut;
-				// public ScoreController#noteWasMissedEvent<NoteData, int multiplier>
-				scoreController.noteWasMissedEvent += OnNoteWasMissed;
-				// public ScoreController#scoreDidChangeEvent<int, int> // score
-				scoreController.scoreDidChangeEvent += OnScoreDidChange;
-				// public ScoreController#comboDidChangeEvent<int> // combo
-				scoreController.comboDidChangeEvent += OnComboDidChange;
-				// public ScoreController#multiplierDidChangeEvent<int, float> // multiplier, progress [0..1]
-				scoreController.multiplierDidChangeEvent += OnMultiplierDidChange;
-				// public event Action<BeatmapEventData> BeatmapObjectCallbackController#beatmapEventDidTriggerEvent
-				beatmapObjectCallbackController.beatmapEventDidTriggerEvent += OnBeatmapEventDidTrigger;
-
-				IDifficultyBeatmap diff = gameplayCoreSceneSetupData.difficultyBeatmap;
-				IBeatmapLevel level = diff.level;
-
-				gameStatus.partyMode = Gamemode.IsPartyActive;
-				gameStatus.mode = Gamemode.GameMode;
-
-				gameplayModifiers = gameplayCoreSceneSetupData.gameplayModifiers;
-				PlayerSpecificSettings playerSettings = gameplayCoreSceneSetupData.playerSpecificSettings;
-				PracticeSettings practiceSettings = gameplayCoreSceneSetupData.practiceSettings;
-
-				float songSpeedMul = gameplayModifiers.songSpeedMul;
-				if (practiceSettings != null) songSpeedMul = practiceSettings.songSpeedMul;
-				float modifierMultiplier = gameplayModifiersSO.GetTotalMultiplier(gameplayModifiers);
-
-				// Generate NoteData to id mappings for backwards compatiblity with <1.12.1
-				noteToIdMapping = new NoteData[diff.beatmapData.cuttableNotesType + diff.beatmapData.bombsCount];
-				lastNoteId = 0;
-
-				int beatmapObjectId = 0;
-				var beatmapObjectsData = diff.beatmapData.beatmapObjectsData;
-
-				foreach (BeatmapObjectData beatmapObjectData in beatmapObjectsData) {
-					if (beatmapObjectData is NoteData noteData) {
-						noteToIdMapping[beatmapObjectId++] = noteData;
-					}
-				}
-
-				gameStatus.songName = level.songName;
-				gameStatus.songSubName = level.songSubName;
-				gameStatus.songAuthorName = level.songAuthorName;
-				gameStatus.levelAuthorName = level.levelAuthorName;
-				gameStatus.songBPM = level.beatsPerMinute;
-				gameStatus.noteJumpSpeed = diff.noteJumpMovementSpeed;
-				// 13 is "custom_level_" and 40 is the magic number for the length of the SHA-1 hash
-				gameStatus.songHash = level.levelID.StartsWith("custom_level_") && !level.levelID.EndsWith(" WIP") ? level.levelID.Substring(13, 40) : null;
-				gameStatus.levelId = level.levelID;
-				gameStatus.songTimeOffset = (long) (level.songTimeOffset * 1000f / songSpeedMul);
-				gameStatus.length = (long) (level.beatmapLevelData.audioClip.length * 1000f / songSpeedMul);
-				gameStatus.start = GetCurrentTime() - (long) (audioTimeSyncController.songTime * 1000f / songSpeedMul);
-				if (practiceSettings != null) gameStatus.start -= (long) (practiceSettings.startSongTime * 1000f / songSpeedMul);
-				gameStatus.paused = 0;
-				gameStatus.difficulty = diff.difficulty.Name();
-				gameStatus.notesCount = diff.beatmapData.cuttableNotesType;
-				gameStatus.bombsCount = diff.beatmapData.bombsCount;
-				gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
-				gameStatus.environmentName = level.environmentInfo.sceneInfo.sceneName;
-
-				gameStatus.maxScore = gameplayModifiersSO.MaxModifiedScoreForMaxRawScore(ScoreModel.MaxRawScoreForNumberOfNotes(diff.beatmapData.cuttableNotesType), gameplayModifiers, gameplayModifiersSO);
-				gameStatus.maxRank = RankModelHelper.MaxRankForGameplayModifiers(gameplayModifiers, gameplayModifiersSO).ToString();
-
-				try {
-					// From https://support.unity3d.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
-					var texture = (await level.GetCoverImageAsync(CancellationToken.None)).texture;
-					var active = RenderTexture.active;
-					var temporary = RenderTexture.GetTemporary(
-						texture.width,
-						texture.height,
-						0,
-						RenderTextureFormat.Default,
-						RenderTextureReadWrite.Linear
-					);
-
-					Graphics.Blit(texture, temporary);
-					RenderTexture.active = temporary;
-
-					var cover = new Texture2D(texture.width, texture.height);
-					cover.ReadPixels(new Rect(0, 0, temporary.width, temporary.height), 0, 0);
-					cover.Apply();
-
-					RenderTexture.active = active;
-					RenderTexture.ReleaseTemporary(temporary);
-
-					gameStatus.songCover = System.Convert.ToBase64String(
-						ImageConversion.EncodeToPNG(cover)
-					);
-				} catch {
-					gameStatus.songCover = null;
-				}
-
-				gameStatus.ResetPerformance();
-
-				gameStatus.modifierMultiplier = modifierMultiplier;
-				gameStatus.songSpeedMultiplier = songSpeedMul;
-				gameStatus.batteryLives = gameEnergyCounter.batteryLives;
-
-				gameStatus.modObstacles = gameplayModifiers.enabledObstacleType.ToString();
-				gameStatus.modInstaFail = gameplayModifiers.instaFail;
-				gameStatus.modNoFail = gameplayModifiers.noFail;
-				gameStatus.modBatteryEnergy = gameplayModifiers.energyType == GameplayModifiers.EnergyType.Battery;
-				gameStatus.modDisappearingArrows = gameplayModifiers.disappearingArrows;
-				gameStatus.modNoBombs = gameplayModifiers.noBombs;
-				gameStatus.modSongSpeed = gameplayModifiers.songSpeed.ToString();
-				gameStatus.modNoArrows = gameplayModifiers.noArrows;
-				gameStatus.modGhostNotes = gameplayModifiers.ghostNotes;
-				gameStatus.modFailOnSaberClash = gameplayModifiers.failOnSaberClash;
-				gameStatus.modStrictAngles = gameplayModifiers.strictAngles;
-				gameStatus.modFastNotes = gameplayModifiers.fastNotes;
-
-				gameStatus.staticLights = playerSettings.staticLights;
-				gameStatus.leftHanded = playerSettings.leftHanded;
-				gameStatus.playerHeight = playerSettings.playerHeight;
-				gameStatus.sfxVolume = playerSettings.sfxVolume;
-				gameStatus.reduceDebris = playerSettings.reduceDebris;
-				gameStatus.noHUD = playerSettings.noTextsAndHuds;
-				gameStatus.advancedHUD = playerSettings.advancedHud;
-				gameStatus.autoRestart = playerSettings.autoRestart;
-
-				statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
 			}
+			// public ScoreController#noteWasCutEvent<NoteData, NoteCutInfo, int multiplier> // called after AfterCutScoreBuffer is created
+			scoreController.noteWasCutEvent += OnNoteWasCut;
+			// public ScoreController#noteWasMissedEvent<NoteData, int multiplier>
+			scoreController.noteWasMissedEvent += OnNoteWasMissed;
+			// public ScoreController#scoreDidChangeEvent<int, int> // score
+			scoreController.scoreDidChangeEvent += OnScoreDidChange;
+			// public ScoreController#comboDidChangeEvent<int> // combo
+			scoreController.comboDidChangeEvent += OnComboDidChange;
+			// public ScoreController#multiplierDidChangeEvent<int, float> // multiplier, progress [0..1]
+			scoreController.multiplierDidChangeEvent += OnMultiplierDidChange;
+			log.Info("2.5");
+			// public event Action<BeatmapEventData> BeatmapObjectCallbackController#beatmapEventDidTriggerEvent
+			beatmapObjectCallbackController.beatmapEventDidTriggerEvent += OnBeatmapEventDidTrigger;
+			// public event Action GameSongController#songDidFinishEvent;
+			gameSongController.songDidFinishEvent += OnLevelFinished;
+			// public event Action GameEnergyCounter#gameEnergyDidReach0Event;
+			gameEnergyCounter.gameEnergyDidReach0Event += OnLevelFailed;
+			log.Info("3");
+
+			IDifficultyBeatmap diff = gameplayCoreSceneSetupData.difficultyBeatmap;
+			IBeatmapLevel level = diff.level;
+
+			gameStatus.partyMode = Gamemode.IsPartyActive;
+			gameStatus.mode = Gamemode.GameMode;
+
+			gameplayModifiers = gameplayCoreSceneSetupData.gameplayModifiers;
+			PlayerSpecificSettings playerSettings = gameplayCoreSceneSetupData.playerSpecificSettings;
+			PracticeSettings practiceSettings = gameplayCoreSceneSetupData.practiceSettings;
+
+			float songSpeedMul = gameplayModifiers.songSpeedMul;
+			if (practiceSettings != null) songSpeedMul = practiceSettings.songSpeedMul;
+			float modifierMultiplier = gameplayModifiersSO.GetTotalMultiplier(gameplayModifiers);
+			log.Info("4");
+
+			// Generate NoteData to id mappings for backwards compatiblity with <1.12.1
+			noteToIdMapping = new NoteData[diff.beatmapData.cuttableNotesType + diff.beatmapData.bombsCount];
+			lastNoteId = 0;
+			log.Info("4.1");
+
+			int beatmapObjectId = 0;
+			var beatmapObjectsData = diff.beatmapData.beatmapObjectsData;
+			log.Info("4.2");
+
+			foreach (BeatmapObjectData beatmapObjectData in beatmapObjectsData) {
+				if (beatmapObjectData is NoteData noteData) {
+					noteToIdMapping[beatmapObjectId++] = noteData;
+				}
+			}
+			log.Info("5");
+
+			gameStatus.songName = level.songName;
+			gameStatus.songSubName = level.songSubName;
+			gameStatus.songAuthorName = level.songAuthorName;
+			gameStatus.levelAuthorName = level.levelAuthorName;
+			gameStatus.songBPM = level.beatsPerMinute;
+			gameStatus.noteJumpSpeed = diff.noteJumpMovementSpeed;
+			// 13 is "custom_level_" and 40 is the magic number for the length of the SHA-1 hash
+			gameStatus.songHash = level.levelID.StartsWith("custom_level_") && !level.levelID.EndsWith(" WIP") ? level.levelID.Substring(13, 40) : null;
+			gameStatus.levelId = level.levelID;
+			gameStatus.songTimeOffset = (long) (level.songTimeOffset * 1000f / songSpeedMul);
+			gameStatus.length = (long) (level.beatmapLevelData.audioClip.length * 1000f / songSpeedMul);
+			gameStatus.start = GetCurrentTime() - (long) (audioTimeSyncController.songTime * 1000f / songSpeedMul);
+			if (practiceSettings != null) gameStatus.start -= (long) (practiceSettings.startSongTime * 1000f / songSpeedMul);
+			gameStatus.paused = 0;
+			gameStatus.difficulty = diff.difficulty.Name();
+			gameStatus.notesCount = diff.beatmapData.cuttableNotesType;
+			gameStatus.bombsCount = diff.beatmapData.bombsCount;
+			gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
+			gameStatus.environmentName = level.environmentInfo.sceneInfo.sceneName;
+
+			gameStatus.maxScore = gameplayModifiersSO.MaxModifiedScoreForMaxRawScore(ScoreModel.MaxRawScoreForNumberOfNotes(diff.beatmapData.cuttableNotesType), gameplayModifiers, gameplayModifiersSO);
+			gameStatus.maxRank = RankModelHelper.MaxRankForGameplayModifiers(gameplayModifiers, gameplayModifiersSO).ToString();
+			log.Info("6");
+
+			try {
+				// From https://support.unity3d.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
+				var texture = (await level.GetCoverImageAsync(CancellationToken.None)).texture;
+				var active = RenderTexture.active;
+				var temporary = RenderTexture.GetTemporary(
+					texture.width,
+					texture.height,
+					0,
+					RenderTextureFormat.Default,
+					RenderTextureReadWrite.Linear
+				);
+
+				Graphics.Blit(texture, temporary);
+				RenderTexture.active = temporary;
+
+				var cover = new Texture2D(texture.width, texture.height);
+				cover.ReadPixels(new Rect(0, 0, temporary.width, temporary.height), 0, 0);
+				cover.Apply();
+
+				RenderTexture.active = active;
+				RenderTexture.ReleaseTemporary(temporary);
+
+				gameStatus.songCover = System.Convert.ToBase64String(
+					ImageConversion.EncodeToPNG(cover)
+				);
+			} catch {
+				gameStatus.songCover = null;
+			}
+			log.Info("7");
+
+			gameStatus.ResetPerformance();
+
+			gameStatus.modifierMultiplier = modifierMultiplier;
+			gameStatus.songSpeedMultiplier = songSpeedMul;
+			gameStatus.batteryLives = gameEnergyCounter.batteryLives;
+
+			gameStatus.modObstacles = gameplayModifiers.enabledObstacleType.ToString();
+			gameStatus.modInstaFail = gameplayModifiers.instaFail;
+			gameStatus.modNoFail = gameplayModifiers.noFail;
+			gameStatus.modBatteryEnergy = gameplayModifiers.energyType == GameplayModifiers.EnergyType.Battery;
+			gameStatus.modDisappearingArrows = gameplayModifiers.disappearingArrows;
+			gameStatus.modNoBombs = gameplayModifiers.noBombs;
+			gameStatus.modSongSpeed = gameplayModifiers.songSpeed.ToString();
+			gameStatus.modNoArrows = gameplayModifiers.noArrows;
+			gameStatus.modGhostNotes = gameplayModifiers.ghostNotes;
+			gameStatus.modFailOnSaberClash = gameplayModifiers.failOnSaberClash;
+			gameStatus.modStrictAngles = gameplayModifiers.strictAngles;
+			gameStatus.modFastNotes = gameplayModifiers.fastNotes;
+
+			gameStatus.staticLights = playerSettings.staticLights;
+			gameStatus.leftHanded = playerSettings.leftHanded;
+			gameStatus.playerHeight = playerSettings.playerHeight;
+			gameStatus.sfxVolume = playerSettings.sfxVolume;
+			gameStatus.reduceDebris = playerSettings.reduceDebris;
+			gameStatus.noHUD = playerSettings.noTextsAndHuds;
+			gameStatus.advancedHUD = playerSettings.advancedHud;
+			gameStatus.autoRestart = playerSettings.autoRestart;
+			log.Info("8");
+
+			statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
 		}
 
 		private static T FindFirstOrDefault<T>() where T: UnityEngine.Object {
@@ -315,7 +419,19 @@ namespace BeatSaberHTTPStatus {
 			return obj;
 		}
 
+		private static T FindFirstOrDefaultOptional<T>() where T: UnityEngine.Object {
+			T obj = Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
+			return obj;
+		}
+
 		public void OnUpdate() {
+			if (doDelayedSongStart) {
+				HandleSongStart();
+
+				// Reset the variable after calling the method so we don't get stuck in a loop.
+				doDelayedSongStart = false;
+			}
+
 			bool currentHeadInObstacle = false;
 
 			if (playerHeadAndObstacleInteraction != null) {
@@ -330,6 +446,20 @@ namespace BeatSaberHTTPStatus {
 				headInObstacle = false;
 
 				statusManager.EmitStatusUpdate(ChangedProperties.Performance, "obstacleExit");
+			}
+		}
+
+		public void OnMultiplayerDisconnected(DisconnectedReason reason) {
+			CleanUpMultiplayer();
+		}
+
+		public void OnMultiplayerStateChanged(MultiplayerController.State state) {
+			log.Info("multiplayer state = " + state);
+
+			if (state == MultiplayerController.State.Gameplay) {
+				// Gameplay controllers don't exist on the initial load of GameCore, so we need to delay it until later.
+				// Additionally, waiting until Gameplay means we don't need to hook into the multiplayer audio sync controllers.
+				HandleSongStart();
 			}
 		}
 
