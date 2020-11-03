@@ -73,6 +73,7 @@ StatusObject = {
 		"multiplier": Integer, // Current combo multiplier {1, 2, 4, 8}
 		"multiplierProgress": Number, // Current combo multiplier progress [0..1)
 		"batteryEnergy": null | Integer, // Current amount of battery lives left. null if Battery Energy and Insta Fail are disabled.
+		"energy": Number, // Current energy
 	},
 	"mod": {
 		"multiplier": Number, // Current score multiplier for gameplay modifiers
@@ -256,6 +257,12 @@ Contains only the `performance` property of [Status object](#status-object).
 ### `scoreChanged` event
 
 Fired when the score changes.
+
+Contains only the `performance` property of [Status object](#status-object).
+
+### `energyChanged` event
+
+Fired when the energy changes.
 
 Contains only the `performance` property of [Status object](#status-object).
 
