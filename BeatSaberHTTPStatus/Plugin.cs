@@ -297,7 +297,7 @@ namespace BeatSaberHTTPStatus {
 			IBeatmapLevel level = diff.level;
 
 			gameStatus.partyMode = Gamemode.IsPartyActive;
-			gameStatus.mode = Gamemode.GameMode;
+			gameStatus.mode = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData.difficultyBeatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName;
 
 			gameplayModifiers = gameplayCoreSceneSetupData.gameplayModifiers;
 			PlayerSpecificSettings playerSettings = gameplayCoreSceneSetupData.playerSpecificSettings;
