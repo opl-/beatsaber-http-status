@@ -1,3 +1,0 @@
-[submodule "libs/websocket-sharp"]
-	path = libs/websocket-sharp
-	url = https://github.com/sta/websocket-sharp.git

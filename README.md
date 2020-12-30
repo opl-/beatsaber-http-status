@@ -23,6 +23,8 @@ Next you will need to [get additional software](https://github.com/opl-/beatsabe
 
 	- BS Utils from [BeatMods](https://beatmods.com/#/mods)
 
+	- websocket-sharp from [BeatMods](https://beatmods.com/#/mods)
+
 5. [Get additional software](https://github.com/opl-/beatsaber-http-status/wiki/Software-using-this-plugin) that makes use of this plugin. This mod does nothing on its own; it simply exposes information for other programs to use.
 
 
@@ -35,8 +37,6 @@ Protocol documentation can be found in [protocol.md](protocol.md).
 ### Contributing to HTTP Status
 
 Before opening a pull request, please read the [contributing guide](CONTRIBUTING.md).
-
-This project uses the `websocket-sharp` library included as a git submodule. To download it, use `git submodule update --init` or clone the repository with the `--recursive` flag.
 
 To build this project you will need to create a `BeatSaberHTTPStatus/BeatSaberHTTPStatusPlugin.csproj.user` file specifying where the game is located on your disk:
 
@@ -58,7 +58,7 @@ The following properties can be specified either in the `.csproj.user` file or t
 
 - `OutputZip` = `true`/`false`: Enable/disable generating the .zip file. Can be used to get a zip for the `Debug` configuration.
 
-- `CopyToPlugins` = `true`/`false`: Enable/disable copying of the websocket library and HTTP Status DLLs to the Beat Saber installation. Depends on `GameDirPath`.
+- `CopyToPlugins` = `true`/`false`: Enable/disable copying of HTTP Status DLLs to the Beat Saber installation. Depends on `GameDirPath`.
 
 
 ## Credits
