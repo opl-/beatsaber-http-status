@@ -562,7 +562,7 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.noteID = -1;
 			// Check the near notes first for performance
 			for (int i = Math.Max(0, lastNoteId - 10); i < noteToIdMapping.Length; i++) {
-				if (NoteDataEquals(noteToIdMapping[i], noteData)) {
+				if (NoteDataEquals(noteToIdMapping[i], noteData, gameStatus.modNoArrows)) {
 					gameStatus.noteID = i;
 					if (i > lastNoteId) lastNoteId = i;
 					break;
@@ -571,7 +571,7 @@ namespace BeatSaberHTTPStatus {
 			// If that failed, check the rest of the notes in reverse order
 			if (gameStatus.noteID == -1) {
 				for (int i = Math.Max(0, lastNoteId - 11); i >= 0; i--) {
-					if (NoteDataEquals(noteToIdMapping[i], noteData)) {
+					if (NoteDataEquals(noteToIdMapping[i], noteData, gameStatus.modNoArrows)) {
 						gameStatus.noteID = i;
 						break;
 					}
@@ -672,8 +672,8 @@ namespace BeatSaberHTTPStatus {
 			return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 		}
 
-		public static bool NoteDataEquals(NoteData a, NoteData b) {
-			return a.time == b.time && a.lineIndex == b.lineIndex && a.noteLineLayer == b.noteLineLayer && a.colorType == b.colorType && a.cutDirection == b.cutDirection && a.duration == b.duration;
+		public static bool NoteDataEquals(NoteData a, NoteData b, bool noArrows = false) {
+			return a.time == b.time && a.lineIndex == b.lineIndex && a.noteLineLayer == b.noteLineLayer && a.colorType == b.colorType && (noArrows || a.cutDirection == b.cutDirection) && a.duration == b.duration;
 		}
 
 		public class PluginTickerScript : PersistentSingleton<PluginTickerScript> {
