@@ -185,7 +185,6 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public void OnActiveSceneChanged(Scene oldScene, Scene newScene) {
-			log.Info("scene.name=" + newScene.name);
 			GameStatus gameStatus = statusManager.gameStatus;
 
 			gameStatus.scene = newScene.name;
@@ -212,7 +211,6 @@ namespace BeatSaberHTTPStatus {
 
 		public async void HandleSongStart() {
 			GameStatus gameStatus = statusManager.gameStatus;
-			log.Info("0");
 
 			// Check for multiplayer early to abort if needed: gameplay controllers don't exist in multiplayer until later
 			multiplayerSessionManager = FindFirstOrDefaultOptional<MultiplayerSessionManager>();
@@ -226,8 +224,6 @@ namespace BeatSaberHTTPStatus {
 
 				// public event Action<State> MultiplayerController#stateChangedEvent;
 				multiplayerController.stateChangedEvent += OnMultiplayerStateChanged;
-
-				log.Info("multiplayer state = " + multiplayerController.state);
 
 				// Do nothing until the next state change to Gameplay.
 				if (multiplayerController.state != MultiplayerController.State.Gameplay) {
@@ -262,13 +258,10 @@ namespace BeatSaberHTTPStatus {
 			}
 
 			gameplayCoreSceneSetupData = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData;
-			log.Info("2");
-			log.Info("scoreController=" + scoreController);
 
 			// Register event listeners
 			// PauseController doesn't exist in multiplayer
 			if (pauseController != null) {
-				log.Info("pauseController=" + pauseController);
 				// public event Action PauseController#didPauseEvent;
 				pauseController.didPauseEvent += OnGamePause;
 				// public event Action PauseController#didResumeEvent;
@@ -284,14 +277,12 @@ namespace BeatSaberHTTPStatus {
 			scoreController.comboDidChangeEvent += OnComboDidChange;
 			// public ScoreController#multiplierDidChangeEvent<int, float> // multiplier, progress [0..1]
 			scoreController.multiplierDidChangeEvent += OnMultiplierDidChange;
-			log.Info("2.5");
 			// public event Action<BeatmapEventData> BeatmapObjectCallbackController#beatmapEventDidTriggerEvent
 			beatmapObjectCallbackController.beatmapEventDidTriggerEvent += OnBeatmapEventDidTrigger;
 			// public event Action GameSongController#songDidFinishEvent;
 			gameSongController.songDidFinishEvent += OnLevelFinished;
 			// public event Action GameEnergyCounter#gameEnergyDidReach0Event;
 			gameEnergyCounter.gameEnergyDidReach0Event += OnLevelFailed;
-			log.Info("3");
 
 			IDifficultyBeatmap diff = gameplayCoreSceneSetupData.difficultyBeatmap;
 			IBeatmapLevel level = diff.level;
@@ -306,23 +297,19 @@ namespace BeatSaberHTTPStatus {
 			float songSpeedMul = gameplayModifiers.songSpeedMul;
 			if (practiceSettings != null) songSpeedMul = practiceSettings.songSpeedMul;
 			float modifierMultiplier = gameplayModifiersSO.GetTotalMultiplier(gameplayModifiers);
-			log.Info("4");
 
 			// Generate NoteData to id mappings for backwards compatiblity with <1.12.1
 			noteToIdMapping = new NoteData[diff.beatmapData.cuttableNotesType + diff.beatmapData.bombsCount];
 			lastNoteId = 0;
-			log.Info("4.1");
 
 			int beatmapObjectId = 0;
 			var beatmapObjectsData = diff.beatmapData.beatmapObjectsData;
-			log.Info("4.2");
 
 			foreach (BeatmapObjectData beatmapObjectData in beatmapObjectsData) {
 				if (beatmapObjectData is NoteData noteData) {
 					noteToIdMapping[beatmapObjectId++] = noteData;
 				}
 			}
-			log.Info("5");
 
 			gameStatus.songName = level.songName;
 			gameStatus.songSubName = level.songSubName;
@@ -346,7 +333,6 @@ namespace BeatSaberHTTPStatus {
 
 			gameStatus.maxScore = gameplayModifiersSO.MaxModifiedScoreForMaxRawScore(ScoreModel.MaxRawScoreForNumberOfNotes(diff.beatmapData.cuttableNotesType), gameplayModifiers, gameplayModifiersSO);
 			gameStatus.maxRank = RankModelHelper.MaxRankForGameplayModifiers(gameplayModifiers, gameplayModifiersSO).ToString();
-			log.Info("6");
 
 			try {
 				// From https://support.unity3d.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
@@ -376,7 +362,6 @@ namespace BeatSaberHTTPStatus {
 			} catch {
 				gameStatus.songCover = null;
 			}
-			log.Info("7");
 
 			gameStatus.ResetPerformance();
 
@@ -405,7 +390,6 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.noHUD = playerSettings.noTextsAndHuds;
 			gameStatus.advancedHUD = playerSettings.advancedHud;
 			gameStatus.autoRestart = playerSettings.autoRestart;
-			log.Info("8");
 
 			statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
 		}
@@ -454,8 +438,6 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public void OnMultiplayerStateChanged(MultiplayerController.State state) {
-			log.Info("multiplayer state = " + state);
-
 			if (state == MultiplayerController.State.Gameplay) {
 				// Gameplay controllers don't exist on the initial load of GameCore, so we need to delay it until later.
 				// Additionally, waiting until Gameplay means we don't need to hook into the multiplayer audio sync controllers.
