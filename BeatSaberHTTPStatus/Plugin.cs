@@ -189,6 +189,10 @@ namespace BeatSaberHTTPStatus {
 
 			gameStatus.scene = newScene.name;
 
+			if (oldScene.name == "GameCore") {
+				CleanUpSong();
+			}
+
 			if (newScene.name == "MenuCore") {
 				// Menu
 				// TODO: get the current song, mode and mods while in menu
@@ -203,8 +207,6 @@ namespace BeatSaberHTTPStatus {
 			GameStatus gameStatus = statusManager.gameStatus;
 
 			gameStatus.scene = "Menu";
-
-			CleanUpSong();
 
 			statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "menu");
 		}
