@@ -123,6 +123,7 @@ namespace BeatSaberHTTPStatus {
 			performanceJSON["multiplier"] = gameStatus.multiplier;
 			performanceJSON["multiplierProgress"] = gameStatus.multiplierProgress;
 			performanceJSON["batteryEnergy"] = gameStatus.modBatteryEnergy || gameStatus.modInstaFail ? (JSONNode) new JSONNumber(gameStatus.batteryEnergy) : (JSONNode) JSONNull.CreateOrGet();
+			performanceJSON["softFailed"] = gameStatus.softFailed;
 		}
 
 		private void UpdateNoteCutJSON() {
@@ -213,6 +214,7 @@ namespace BeatSaberHTTPStatus {
 		public static readonly ChangedProperties PerformanceAndNoteCut = new ChangedProperties(false, false, true, true, false, false);
 		public static readonly ChangedProperties Mod = new ChangedProperties(false, false, false, false, true, false);
 		public static readonly ChangedProperties BeatmapEvent = new ChangedProperties(false, false, false, false, false, true);
+		public static readonly ChangedProperties BeatmapAndPerformanceAndMod = new ChangedProperties(false, true, true, false, true, false);
 
 		public readonly bool game;
 		public readonly bool beatmap;
