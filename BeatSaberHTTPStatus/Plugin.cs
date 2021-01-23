@@ -230,7 +230,7 @@ namespace BeatSaberHTTPStatus {
 			multiplayerController = FindFirstOrDefaultOptional<MultiplayerController>();
 
 			if (multiplayerSessionManager && multiplayerController) {
-				Plugin.log.Info("Multiplayer Level loaded");
+				Plugin.log.Debug("Multiplayer Level loaded");
 
 				// public event Action<DisconnectedReason> MultiplayerSessionManager#disconnectedEvent;
 				multiplayerSessionManager.disconnectedEvent += OnMultiplayerDisconnected;
@@ -271,9 +271,9 @@ namespace BeatSaberHTTPStatus {
 			if (multiplayerController) {
 				// NOOP
 			} else if (gameplayManager is StandardLevelGameplayManager) {
-				Plugin.log.Info("Standard Level loaded");
+				Plugin.log.Debug("Standard Level loaded");
 			} else if (gameplayManager is MissionLevelGameplayManager) {
-				Plugin.log.Info("Mission Level loaded");
+				Plugin.log.Debug("Mission Level loaded");
 			}
 
 			gameplayCoreSceneSetupData = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData;
