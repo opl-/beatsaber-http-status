@@ -32,6 +32,7 @@ namespace BeatSaberHTTPStatus {
 		private ScoreController scoreController;
 		private MultiplayerSessionManager multiplayerSessionManager;
 		private MultiplayerController multiplayerController;
+		private MultiplayerLocalActivePlayerFacade multiplayerLocalActivePlayerFacade;
 		private MonoBehaviour gameplayManager;
 		private GameplayModifiersModelSO gameplayModifiersSO;
 		private GameplayModifiers gameplayModifiers;
@@ -182,6 +183,11 @@ namespace BeatSaberHTTPStatus {
 				multiplayerController.stateChangedEvent -= OnMultiplayerStateChanged;
 				multiplayerController = null;
 			}
+
+			if (multiplayerLocalActivePlayerFacade != null) {
+				multiplayerLocalActivePlayerFacade.playerDidFinishEvent -= OnMultiplayerLevelFinished;
+				multiplayerLocalActivePlayerFacade = null;
+			}
 		}
 
 		public void OnActiveSceneChanged(Scene oldScene, Scene newScene) {
@@ -230,6 +236,12 @@ namespace BeatSaberHTTPStatus {
 				// Do nothing until the next state change to Gameplay.
 				if (multiplayerController.state != MultiplayerController.State.Gameplay) {
 					return;
+				}
+
+				multiplayerLocalActivePlayerFacade = FindFirstOrDefaultOptional<MultiplayerLocalActivePlayerFacade>();
+
+				if (multiplayerLocalActivePlayerFacade != null) {
+					multiplayerLocalActivePlayerFacade.playerDidFinishEvent += OnMultiplayerLevelFinished;
 				}
 			} else if (!doDelayedSongStart) {
 				doDelayedSongStart = true;
@@ -644,6 +656,14 @@ namespace BeatSaberHTTPStatus {
 
 		public void OnLevelFailed() {
 			statusManager.EmitStatusUpdate(ChangedProperties.Performance, "failed");
+		}
+
+		public void OnMultiplayerLevelFinished(LevelCompletionResults results) {
+			if (results.levelEndStateType == LevelCompletionResults.LevelEndStateType.Cleared) {
+				OnLevelFinished();
+			} else if (results.levelEndStateType == LevelCompletionResults.LevelEndStateType.Failed) {
+				OnLevelFailed();
+			}
 		}
 
 		public void OnBeatmapEventDidTrigger(BeatmapEventData beatmapEventData) {
