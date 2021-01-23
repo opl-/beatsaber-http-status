@@ -615,6 +615,7 @@ namespace BeatSaberHTTPStatus {
 		public void OnScoreDidChange(int scoreBeforeMultiplier, int scoreAfterMultiplier) {
 			GameStatus gameStatus = statusManager.gameStatus;
 
+			gameStatus.rawScore = scoreBeforeMultiplier;
 			gameStatus.score = scoreAfterMultiplier;
 
 			int currentMaxScoreBeforeMultiplier = ScoreModel.MaxRawScoreForNumberOfNotes(gameStatus.passedNotes);

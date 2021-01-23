@@ -33,6 +33,7 @@ namespace BeatSaberHTTPStatus {
 		public string environmentName = null;
 
 		// Performance
+		public int rawScore = 0;
 		public int score = 0;
 		public int currentMaxScore = 0;
 		public string rank = "E";
@@ -133,6 +134,7 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public void ResetPerformance() {
+			this.rawScore = 0;
 			this.score = 0;
 			this.currentMaxScore = 0;
 			this.rank = "E";

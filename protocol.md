@@ -60,6 +60,7 @@ StatusObject = {
 		"environmentName": String, // Name of the environment this beatmap requested // TODO: list available names
 	},
 	"performance": null | {
+		"rawScore": Integer, // Current score without the modifier multiplier
 		"score": Integer, // Current score with modifier multiplier
 		"currentMaxScore": Integer, // Maximum score with modifier multiplier achievable at current passed notes
 		"rank": "SSS" | "SS" | "S" | "A" | "B" | "C" | "D" | "E", // Current rank
