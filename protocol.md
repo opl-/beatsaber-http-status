@@ -78,23 +78,26 @@ StatusObject = {
 	},
 	"mod": {
 		"multiplier": Number, // Current score multiplier for gameplay modifiers
-		"obstacles": false | "FullHeightOnly" | "All", // No Obstacles (FullHeightOnly is not possible from UI)
-		"instaFail": Boolean, // Insta Fail
+		"obstacles": false | "FullHeightOnly" | "All", // No Walls (FullHeightOnly is not possible from UI, formerly "No Obstacles")
+		"instaFail": Boolean, // 1 Life (formerly "Insta Fail")
 		"noFail": Boolean, // No Fail
-		"batteryEnergy": Boolean, // Battery Energy
+		"batteryEnergy": Boolean, // 4 Lives (formerly "Battery Energy")
 		"batteryLives": null | Integer, // Amount of battery energy available. 4 with Battery Energy, 1 with Insta Fail, null with neither enabled.
 		"disappearingArrows": Boolean, // Disappearing Arrows
 		"noBombs": Boolean, // No Bombs
-		"songSpeed": "Normal" | "Slower" | "Faster", // Song Speed (Slower = 85%, Faster = 120%)
+		"songSpeed": "Normal" | "Slower" | "Faster" | "SuperFast", // Song Speed (Slower = 85%, Faster = 120%, SuperFast = 150%)
 		"songSpeedMultiplier": Number, // Song speed multiplier. Might be altered by practice settings.
 		"noArrows": Boolean, // No Arrows
 		"ghostNotes": Boolean, // Ghost Notes
 		"failOnSaberClash": Boolean, // Fail on Saber Clash (Hidden)
-		"strictAngles": Boolean, // Strict Angles (Hidden. Requires more precise cut direction; changes max deviation from 60deg to 15deg)
+		"strictAngles": Boolean, // Strict Angles (Requires more precise cut direction; changes max deviation from 60deg to 15deg)
 		"fastNotes": Boolean, // Does something (Hidden)
+		"smallNotes": Boolean, // Small Notes
+		"proMode": Boolean, // Pro Mode
+		"zenMode": Boolean, // Zen Mode
 	},
 	"playerSettings": {
-		"staticLights": Boolean, // Static lights
+		"staticLights": Boolean, // `true` if `environmentEffects` is not `AllEffects`. (formerly "Static lights", backwards compat)
 		"leftHanded": Boolean, // Left handed
 		"playerHeight": Number, // Player's height
 		"sfxVolume": Number, // Disable sound effects [0..1]
@@ -102,6 +105,9 @@ StatusObject = {
 		"noHUD": Boolean, // No text and HUDs
 		"advancedHUD": Boolean, // Advanced HUD
 		"autoRestart" : Boolean, // Auto Restart on Fail
+		"saberTrailIntensity": Number, // Trail Intensity [0..1]
+		"environmentEffects": "AllEffects" | "StrobeFilter" | "NoEffects", // Environment effects
+		"hideNoteSpawningEffect": Boolean, // Hide note spawning effect
 	},
 }
 ```
