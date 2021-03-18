@@ -408,8 +408,9 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.modProMode = gameplayModifiers.proMode;
 			gameStatus.modZenMode = gameplayModifiers.zenMode;
 
+			var environmentEffectsFilterPreset = diff.difficulty == BeatmapDifficulty.ExpertPlus ? playerSettings.environmentEffectsFilterExpertPlusPreset : playerSettings.environmentEffectsFilterDefaultPreset;
 			// Backwards compatibility for <1.13.4
-			gameStatus.staticLights = playerSettings.environmentEffectsFilterPreset != EnvironmentEffectsFilterPreset.AllEffects;
+			gameStatus.staticLights = environmentEffectsFilterPreset != EnvironmentEffectsFilterPreset.AllEffects;
 			gameStatus.leftHanded = playerSettings.leftHanded;
 			gameStatus.playerHeight = playerSettings.playerHeight;
 			gameStatus.sfxVolume = playerSettings.sfxVolume;
@@ -418,7 +419,7 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.advancedHUD = playerSettings.advancedHud;
 			gameStatus.autoRestart = playerSettings.autoRestart;
 			gameStatus.saberTrailIntensity = playerSettings.saberTrailIntensity;
-			gameStatus.environmentEffects = playerSettings.environmentEffectsFilterPreset.ToString();
+			gameStatus.environmentEffects = environmentEffectsFilterPreset.ToString();
 			gameStatus.hideNoteSpawningEffect = playerSettings.hideNoteSpawnEffect;
 
 			statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
