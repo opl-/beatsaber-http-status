@@ -44,7 +44,7 @@ namespace BeatSaberHTTPStatus {
 			}
 			if (changedProps.beatmapEvent) UpdateBeatmapEventJSON();
 
-			if (statusChange != null) statusChange(this, changedProps, cause);
+			statusChange?.Invoke(this, changedProps, cause);
 		}
 
 		private void UpdateAll() {
