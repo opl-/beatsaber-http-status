@@ -1,5 +1,8 @@
 using System;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using IPA.Utilities.Async;
 using SimpleJSON;
 using WebSocketSharp;
 using WebSocketSharp.Net;
@@ -44,7 +47,8 @@ namespace BeatSaberHTTPStatus {
 				res.ContentType = "application/json";
 				res.ContentEncoding = Encoding.UTF8;
 
-				var stringifiedStatus = Encoding.UTF8.GetBytes(statusManager.statusJSON.ToString());
+				// read game info from on game thread
+				var stringifiedStatus = UnityMainThreadTaskScheduler.Factory.StartNew(() => Encoding.UTF8.GetBytes(statusManager.statusJSON.ToString())).Result;
 
 				res.ContentLength64 = stringifiedStatus.Length;
 				res.Close(stringifiedStatus, false);
@@ -59,24 +63,38 @@ namespace BeatSaberHTTPStatus {
 
 	public class StatusBroadcastBehavior : WebSocketBehavior {
 		private StatusManager statusManager;
+		private Task readyToWrite = Task.CompletedTask;
+		private readonly CancellationTokenSource connectionClosed = new CancellationTokenSource();
 
 		public void SetStatusManager(StatusManager statusManager) {
 			this.statusManager = statusManager;
-
 			statusManager.statusChange += OnStatusChange;
 		}
 
+		/// <summary>Queue data to send on the websocket in-order. This method is thread-safe.</summary>
+		private void QueuedSend(string data) {
+			var promise = new TaskCompletionSource<object>();
+			var oldReadyToWrite = Interlocked.Exchange(ref readyToWrite, promise.Task);
+			oldReadyToWrite.ContinueWith(t => {
+				SendAsync(data, b => {
+					promise.SetResult(null);
+				});
+			}, connectionClosed.Token, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+		}
+
 		protected override void OnOpen() {
-			JSONObject eventJSON = new JSONObject();
+			UnityMainThreadTaskScheduler.Factory.StartNew(() => {
+				JSONObject eventJSON = new JSONObject();
+				eventJSON["event"] = "hello";
+				eventJSON["time"] = new JSONNumber(Plugin.GetCurrentTime());
+				eventJSON["status"] = statusManager.statusJSON;
 
-			eventJSON["event"] = "hello";
-			eventJSON["time"] = new JSONNumber(Plugin.GetCurrentTime());
-			eventJSON["status"] = statusManager.statusJSON;
-
-			Send(eventJSON.ToString());
+				QueuedSend(eventJSON.ToString());
+			}, connectionClosed.Token);
 		}
 
 		protected override void OnClose(CloseEventArgs e) {
+			connectionClosed.Cancel();
 			statusManager.statusChange -= OnStatusChange;
 		}
 
@@ -108,7 +126,7 @@ namespace BeatSaberHTTPStatus {
 				eventJSON["beatmapEvent"] = statusManager.beatmapEventJSON;
 			}
 
-			Send(eventJSON.ToString());
+			QueuedSend(eventJSON.ToString());
 		}
 	}
 }
