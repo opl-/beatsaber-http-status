@@ -528,6 +528,8 @@ namespace BeatSaberHTTPStatus {
 			} else {
 				gameStatus.passedNotes++;
 
+				UpdateCurrentMaxScore();
+
 				if (noteCutInfo.allIsOK) {
 					gameStatus.hitNotes++;
 
@@ -659,6 +661,8 @@ namespace BeatSaberHTTPStatus {
 			} else {
 				statusManager.gameStatus.passedNotes++;
 				statusManager.gameStatus.missedNotes++;
+
+				UpdateCurrentMaxScore();
 
 				statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteMissed");
 			}
