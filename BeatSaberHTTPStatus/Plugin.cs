@@ -323,12 +323,12 @@ namespace BeatSaberHTTPStatus {
 			float songSpeedMul = gameplayModifiers.songSpeedMul;
 			if (practiceSettings != null) songSpeedMul = practiceSettings.songSpeedMul;
 
-			// Generate NoteData to id mappings for backwards compatiblity with <1.12.1
-			noteToIdMapping = new NoteData[diff.beatmapData.cuttableNotesType + diff.beatmapData.bombsCount];
-			lastNoteId = 0;
-
 			int beatmapObjectId = 0;
 			var beatmapObjectsData = diff.beatmapData.beatmapObjectsData;
+
+			// Generate NoteData to id mappings for backwards compatiblity with <1.12.1
+			noteToIdMapping = new NoteData[beatmapObjectsData.Count(obj => obj is NoteData)];
+			lastNoteId = 0;
 
 			foreach (BeatmapObjectData beatmapObjectData in beatmapObjectsData) {
 				if (beatmapObjectData is NoteData noteData) {
