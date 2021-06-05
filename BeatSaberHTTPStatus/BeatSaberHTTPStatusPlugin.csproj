@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <Version>1.15.1</Version>
-    <BeatSaberVersion>1.14.0</BeatSaberVersion>
+    <BeatSaberVersion>1.16.1</BeatSaberVersion>
     <GameDirPath>..\libs\beatsaber\</GameDirPath>
     <SemVerVersion>$(Version)</SemVerVersion>
     <CopyToPlugins Condition=" '$(CopyToPlugins)' == '' ">true</CopyToPlugins>

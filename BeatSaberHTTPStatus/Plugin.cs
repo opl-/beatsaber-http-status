@@ -708,10 +708,10 @@ namespace BeatSaberHTTPStatus {
 			statusManager.EmitStatusUpdate(ChangedProperties.Performance, "failed");
 		}
 
-		public void OnMultiplayerLevelFinished(LevelCompletionResults results) {
-			if (results.levelEndStateType == LevelCompletionResults.LevelEndStateType.Cleared) {
+		public void OnMultiplayerLevelFinished(MultiplayerLevelCompletionResults results) {
+			if (results.levelEndState == MultiplayerLevelCompletionResults.MultiplayerLevelEndState.Cleared) {
 				OnLevelFinished();
-			} else if (results.levelEndStateType == LevelCompletionResults.LevelEndStateType.Failed) {
+			} else if (results.levelEndState == MultiplayerLevelCompletionResults.MultiplayerLevelEndState.Failed) {
 				OnLevelFailed();
 			}
 		}
