@@ -205,7 +205,7 @@ namespace BeatSaberHTTPStatus {
 				CleanUpSong();
 			}
 
-			if (newScene.name == "MenuCore") {
+			if (newScene.name == "MainMenu") {
 				// Menu
 				// TODO: get the current song, mode and mods while in menu
 				HandleMenuStart();
