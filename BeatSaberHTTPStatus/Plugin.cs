@@ -351,7 +351,7 @@ namespace BeatSaberHTTPStatus {
 			if (practiceSettings != null) gameStatus.start -= (long) (practiceSettings.startSongTime * 1000f / songSpeedMul);
 			gameStatus.paused = 0;
 			gameStatus.difficulty = diff.difficulty.Name();
-			gameStatus.notesCount = diff.beatmapData.cuttableNotesType;
+			gameStatus.notesCount = diff.beatmapData.cuttableNotesCount;
 			gameStatus.bombsCount = diff.beatmapData.bombsCount;
 			gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
 			gameStatus.environmentName = level.environmentInfo.sceneInfo.sceneName;
@@ -446,7 +446,7 @@ namespace BeatSaberHTTPStatus {
 
 			gameStatus.modifierMultiplier = gameplayModifiersSO.GetTotalMultiplier(gameplayModiferParamsList, energy);
 
-			gameStatus.maxScore = gameplayModifiersSO.MaxModifiedScoreForMaxRawScore(ScoreModel.MaxRawScoreForNumberOfNotes(gameplayCoreSceneSetupData.difficultyBeatmap.beatmapData.cuttableNotesType), gameplayModiferParamsList, gameplayModifiersSO, energy);
+			gameStatus.maxScore = gameplayModifiersSO.MaxModifiedScoreForMaxRawScore(ScoreModel.MaxRawScoreForNumberOfNotes(gameplayCoreSceneSetupData.difficultyBeatmap.beatmapData.cuttableNotesCount), gameplayModiferParamsList, gameplayModifiersSO, energy);
 			gameStatus.maxRank = RankModelHelper.MaxRankForGameplayModifiers(gameplayModifiers, gameplayModifiersSO, energy).ToString();
 		}
 
