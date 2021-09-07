@@ -51,7 +51,8 @@ StatusObject = {
 		"start": null | Integer, // UNIX timestamp in millis of when the map was started. Changes if the game is resumed. Might be altered by practice settings.
 		"paused": null | Integer, // If game is paused, UNIX timestamp in millis of when the map was paused. null otherwise.
 		"length": Integer, // Length of map in millis. Adjusted for song speed multiplier.
-		"difficulty": "Easy" | "Normal" | "Hard" | "Expert" | "ExpertPlus", // Beatmap difficulty
+		"difficulty": String, // Translated beatmap difficulty name. If SongCore is installed, this may contain a custom difficulty label defined by the beatmap.
+		"difficultyEnum": "Easy" | "Normal" | "Hard" | "Expert" | "ExpertPlus", // Beatmap difficulty
 		"notesCount": Integer, // Map cube count
 		"bombsCount": Integer, // Map bomb count. Set even with No Bombs modifier enabled.
 		"obstaclesCount": Integer, // Map obstacle count. Set even with No Obstacles modifier enabled.

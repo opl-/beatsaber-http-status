@@ -352,6 +352,7 @@ namespace BeatSaberHTTPStatus {
 			if (practiceSettings != null) gameStatus.start -= (long) (practiceSettings.startSongTime * 1000f / songSpeedMul);
 			gameStatus.paused = 0;
 			gameStatus.difficulty = diff.difficulty.Name();
+			gameStatus.difficultyEnum = Enum.GetName(typeof(BeatmapDifficulty), diff.difficulty);
 			gameStatus.notesCount = diff.beatmapData.cuttableNotesCount;
 			gameStatus.bombsCount = diff.beatmapData.bombsCount;
 			gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;

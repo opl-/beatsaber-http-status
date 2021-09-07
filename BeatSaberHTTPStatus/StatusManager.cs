@@ -91,6 +91,7 @@ namespace BeatSaberHTTPStatus {
 			beatmapJSON["paused"] = gameStatus.paused == 0 ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONNumber(gameStatus.paused);
 			beatmapJSON["length"] = new JSONNumber(gameStatus.length);
 			beatmapJSON["difficulty"] = stringOrNull(gameStatus.difficulty);
+			beatmapJSON["difficultyEnum"] = stringOrNull(gameStatus.difficultyEnum);
 			beatmapJSON["notesCount"] = gameStatus.notesCount;
 			beatmapJSON["bombsCount"] = gameStatus.bombsCount;
 			beatmapJSON["obstaclesCount"] = gameStatus.obstaclesCount;
