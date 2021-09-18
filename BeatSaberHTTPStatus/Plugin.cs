@@ -229,7 +229,7 @@ namespace BeatSaberHTTPStatus {
 			if (!BS_Utils.Plugin.LevelData.IsSet) {
 				Plugin.log.Debug("BS_Utils level data is not present. Probably due to the tutorial being active.");
 				return;
-            }
+			}
 
 			GameStatus gameStatus = statusManager.gameStatus;
 
