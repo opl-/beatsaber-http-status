@@ -225,6 +225,12 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public async void HandleSongStart() {
+			// Check if level data is actually available in BS_Utils before proceeding further. It isn't available in the tutorial
+			if (!BS_Utils.Plugin.LevelData.IsSet) {
+				Plugin.log.Debug("BS_Utils level data is not present. Probably due to the tutorial being active.");
+				return;
+            }
+
 			GameStatus gameStatus = statusManager.gameStatus;
 
 			// Check for multiplayer early to abort if needed: gameplay controllers don't exist in multiplayer until later
@@ -261,11 +267,19 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.multiplayer = multiplayerSessionManager.isConnectingOrConnected;
 
 			pauseController = FindFirstOrDefaultOptional<PauseController>();
-			scoreController = FindFirstOrDefault<ScoreController>();
+			if (multiplayerSessionManager.isConnectingOrConnected) {
+				scoreController = FindFirstOrDefault<ScoreController>();
+			} else {
+				scoreController = FindLastOrDefault<ScoreController>();
+			}
 			gameplayManager = FindFirstOrDefaultOptional<StandardLevelGameplayManager>() as MonoBehaviour ?? FindFirstOrDefaultOptional<MissionLevelGameplayManager>();
 			beatmapObjectCallbackController = FindFirstOrDefault<BeatmapObjectCallbackController>();
 			gameplayModifiersSO = FindFirstOrDefault<GameplayModifiersModelSO>();
-			audioTimeSyncController = FindFirstOrDefault<AudioTimeSyncController>();
+			if (multiplayerSessionManager.isConnectingOrConnected) {
+				audioTimeSyncController = FindFirstOrDefault<AudioTimeSyncController>();
+			} else {
+				audioTimeSyncController = FindLastOrDefault<AudioTimeSyncController>();
+			}
 			playerHeadAndObstacleInteraction = (PlayerHeadAndObstacleInteraction) scoreControllerHeadAndObstacleInteractionField.GetValue(scoreController);
 			gameSongController = FindFirstOrDefault<GameSongController>();
 			gameEnergyCounter = FindFirstOrDefault<GameEnergyCounter>();
@@ -438,6 +452,23 @@ namespace BeatSaberHTTPStatus {
 
 		private static T FindFirstOrDefaultOptional<T>() where T: UnityEngine.Object {
 			T obj = Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
+			return obj;
+		}
+
+		private static T FindLastOrDefault<T>() where T : UnityEngine.Object
+		{
+			T obj = Resources.FindObjectsOfTypeAll<T>().LastOrDefault();
+			if (obj == null)
+			{
+				Plugin.log.Error("Couldn't find " + typeof(T).FullName);
+				throw new InvalidOperationException("Couldn't find " + typeof(T).FullName);
+			}
+			return obj;
+		}
+
+		private static T FindLastOrDefaultOptional<T>() where T : UnityEngine.Object
+		{
+			T obj = Resources.FindObjectsOfTypeAll<T>().LastOrDefault();
 			return obj;
 		}
 
