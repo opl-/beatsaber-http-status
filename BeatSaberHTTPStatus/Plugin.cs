@@ -364,6 +364,17 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
 			gameStatus.environmentName = level.environmentInfo.sceneInfo.sceneName;
 
+			ColorScheme colorScheme = gameplayCoreSceneSetupData.colorScheme ?? new ColorScheme(gameplayCoreSceneSetupData.environmentInfo.colorScheme);
+			gameStatus.colorSaberA = colorScheme.saberAColor;
+			gameStatus.colorSaberB = colorScheme.saberBColor;
+			gameStatus.colorEnvironment0 = colorScheme.environmentColor0;
+			gameStatus.colorEnvironment1 = colorScheme.environmentColor1;
+			if (colorScheme.supportsEnvironmentColorBoost) {
+				gameStatus.colorEnvironmentBoost0 = colorScheme.environmentColor0Boost;
+				gameStatus.colorEnvironmentBoost1 = colorScheme.environmentColor1Boost;
+			}
+			gameStatus.colorObstacle = colorScheme.obstaclesColor;
+
 			try {
 				// From https://support.unity3d.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
 				var texture = (await level.GetCoverImageAsync(CancellationToken.None)).texture;

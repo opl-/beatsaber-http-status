@@ -98,6 +98,32 @@ namespace BeatSaberHTTPStatus {
 			beatmapJSON["maxScore"] = gameStatus.maxScore;
 			beatmapJSON["maxRank"] = gameStatus.maxRank;
 			beatmapJSON["environmentName"] = gameStatus.environmentName;
+
+			if (beatmapJSON["color"] == null) beatmapJSON["color"] = new JSONObject();
+			JSONObject colorJSON = (JSONObject) beatmapJSON["color"];
+
+			UpdateColor(gameStatus.colorSaberA, colorJSON, "saberA");
+			UpdateColor(gameStatus.colorSaberB, colorJSON, "saberB");
+			UpdateColor(gameStatus.colorEnvironment0, colorJSON, "environment0");
+			UpdateColor(gameStatus.colorEnvironment1, colorJSON, "environment1");
+			UpdateColor(gameStatus.colorEnvironmentBoost0, colorJSON, "environment0Boost");
+			UpdateColor(gameStatus.colorEnvironmentBoost1, colorJSON, "environment1Boost");
+			UpdateColor(gameStatus.colorObstacle, colorJSON, "obstacle");
+		}
+
+		private void UpdateColor(Color? color, JSONObject parent, String key) {
+			if (color == null) {
+				parent[key] = JSONNull.CreateOrGet();
+				return;
+			}
+
+			var arr = parent[key] as JSONArray ?? new JSONArray();
+
+			arr[0] = Mathf.RoundToInt(((Color) color).r * 255);
+			arr[1] = Mathf.RoundToInt(((Color) color).g * 255);
+			arr[2] = Mathf.RoundToInt(((Color) color).b * 255);
+
+			parent[key] = arr;
 		}
 
 		private void UpdatePerformanceJSON() {

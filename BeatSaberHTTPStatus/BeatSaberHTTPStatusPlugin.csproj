@@ -66,6 +66,10 @@
       <HintPath>$(GameDirPath)\Beat Saber_Data\Managed\BGNet.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Colors">
+      <HintPath>$(GameDirPath)\Beat Saber_Data\Managed\Colors.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />

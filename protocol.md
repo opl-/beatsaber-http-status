@@ -59,6 +59,15 @@ StatusObject = {
 		"maxScore": Integer, // Max score obtainable on the map with modifier multiplier
 		"maxRank": "SSS" | "SS" | "S" | "A" | "B" | "C" | "D" | "E", // Max rank obtainable using current modifiers
 		"environmentName": String, // Name of the environment this beatmap requested // TODO: list available names
+		"color": { // Contains colors used by this environment. If overrides were set by the player, they replace the values provided by the environment. SongCore may override the colors based on beatmap settings, including player overrides. Each color is stored as an array of three integers in the range [0..255] representing the red, green, and blue values in order.
+			"saberA": [Integer, Integer, Integer], // Color of the left saber and its notes
+			"saberB": [Integer, Integer, Integer], // Color of the right saber and its notes
+			"environment0": [Integer, Integer, Integer], // First environment color
+			"environment1": [Integer, Integer, Integer], // Second environment color
+			"environment0Boost": null | [Integer, Integer, Integer], // First environment boost color. If a boost color isn't set, this property will be `null`, and the value of `environment0` should be used instead.
+			"environment1Boost": null | [Integer, Integer, Integer], // Second environment boost color. If a boost color isn't set, this property will be `null`, and the value of `environment1` should be used instead.
+			"obstacle": [Integer, Integer, Integer], // Color of obstacles
+		},
 	},
 	"performance": null | {
 		"rawScore": Integer, // Current score without the modifier multiplier
