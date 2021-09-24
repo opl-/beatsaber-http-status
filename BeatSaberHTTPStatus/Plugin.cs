@@ -261,14 +261,14 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.multiplayer = multiplayerSessionManager.isConnectingOrConnected;
 
 			pauseController = FindFirstOrDefaultOptional<PauseController>();
-			scoreController = FindFirstOrDefault<ScoreController>();
+			scoreController = FindWithMultiplayerFix<ScoreController>();
 			gameplayManager = FindFirstOrDefaultOptional<StandardLevelGameplayManager>() as MonoBehaviour ?? FindFirstOrDefaultOptional<MissionLevelGameplayManager>();
-			beatmapObjectCallbackController = FindFirstOrDefault<BeatmapObjectCallbackController>();
+			beatmapObjectCallbackController = FindWithMultiplayerFix<BeatmapObjectCallbackController>();
 			gameplayModifiersSO = FindFirstOrDefault<GameplayModifiersModelSO>();
-			audioTimeSyncController = FindFirstOrDefault<AudioTimeSyncController>();
+			audioTimeSyncController = FindWithMultiplayerFix<AudioTimeSyncController>();
 			playerHeadAndObstacleInteraction = (PlayerHeadAndObstacleInteraction) scoreControllerHeadAndObstacleInteractionField.GetValue(scoreController);
-			gameSongController = FindFirstOrDefault<GameSongController>();
-			gameEnergyCounter = FindFirstOrDefault<GameEnergyCounter>();
+			gameSongController = FindWithMultiplayerFix<GameSongController>();
+			gameEnergyCounter = FindWithMultiplayerFix<GameEnergyCounter>();
 
 			if (multiplayerController) {
 				// NOOP
@@ -427,6 +427,20 @@ namespace BeatSaberHTTPStatus {
 			statusManager.EmitStatusUpdate(ChangedProperties.AllButNoteCut, "songStart");
 		}
 
+		/// <summary>
+		/// Workaround for controller types created for multiplayer lingering around after leaving, resulting in those getting returned after switching back to singleplayer. See #74.
+		/// </summary>
+		private T FindWithMultiplayerFix<T>() where T: UnityEngine.Object {
+			return multiplayerSessionManager.isConnectingOrConnected ? FindFirstOrDefault<T>() : FindLastOrDefault<T>();
+		}
+
+		/// <summary>
+		/// Workaround for controller types created for multiplayer lingering around after leaving, resulting in those getting returned after switching back to singleplayer. See #74.
+		/// </summary>
+		private T FindOptionalWithMultiplayerFix<T>() where T: UnityEngine.Object {
+			return multiplayerSessionManager.isConnectingOrConnected ? FindFirstOrDefaultOptional<T>() : FindLastOrDefaultOptional<T>();
+		}
+
 		private static T FindFirstOrDefault<T>() where T: UnityEngine.Object {
 			T obj = Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
 			if (obj == null) {
@@ -438,6 +452,20 @@ namespace BeatSaberHTTPStatus {
 
 		private static T FindFirstOrDefaultOptional<T>() where T: UnityEngine.Object {
 			T obj = Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
+			return obj;
+		}
+
+		private static T FindLastOrDefault<T>() where T: UnityEngine.Object {
+			T obj = Resources.FindObjectsOfTypeAll<T>().LastOrDefault();
+			if (obj == null) {
+				Plugin.log.Error("Couldn't find " + typeof(T).FullName);
+				throw new InvalidOperationException("Couldn't find " + typeof(T).FullName);
+			}
+			return obj;
+		}
+
+		private static T FindLastOrDefaultOptional<T>() where T: UnityEngine.Object {
+			T obj = Resources.FindObjectsOfTypeAll<T>().LastOrDefault();
 			return obj;
 		}
 
