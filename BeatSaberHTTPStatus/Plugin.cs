@@ -135,7 +135,7 @@ namespace BeatSaberHTTPStatus {
 			if (gameplayManager != null) {
 				if (gameplayManager is ILevelEndActions levelEndActions) {
 					// event Action levelFailedEvent;
-					levelEndActions.levelFailedEvent += OnLevelFailed;
+					levelEndActions.levelFailedEvent -= OnLevelFailed;
 				}
 				gameplayManager = null;
 			}
