@@ -225,6 +225,12 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public async void HandleSongStart() {
+			// Check if level data is actually available in BS_Utils before proceeding further. It isn't available in the tutorial
+			if (!BS_Utils.Plugin.LevelData.IsSet) {
+				Plugin.log.Debug("BS_Utils level data is not present. Probably due to the tutorial being active.");
+				return;
+			}
+
 			GameStatus gameStatus = statusManager.gameStatus;
 
 			// Check for multiplayer early to abort if needed: gameplay controllers don't exist in multiplayer until later
