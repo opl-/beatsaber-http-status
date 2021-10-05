@@ -31,6 +31,7 @@ namespace BeatSaberHTTPStatus {
 		private GameplayCoreSceneSetupData gameplayCoreSceneSetupData;
 		private PauseController pauseController;
 		private ScoreController scoreController;
+		private BeatmapObjectManager beatmapObjectManager;
 		private MultiplayerSessionManager multiplayerSessionManager;
 		private MultiplayerController multiplayerController;
 		private MultiplayerLocalActivePlayerFacade multiplayerLocalActivePlayerFacade;
@@ -43,6 +44,7 @@ namespace BeatSaberHTTPStatus {
 		private PlayerHeadAndObstacleInteraction playerHeadAndObstacleInteraction;
 		private GameSongController gameSongController;
 		private GameEnergyCounter gameEnergyCounter;
+		private Dictionary<NoteData, NoteController> noteMapping = new Dictionary<NoteData, NoteController>();
 		private Dictionary<CutScoreBuffer, NoteFullyCutData> noteCutMapping = new Dictionary<CutScoreBuffer, NoteFullyCutData>();
 		/// <summary>
 		/// Beat Saber 1.12.1 removes NoteData.id, forcing us to generate our own note IDs to allow users to easily link events about the same note.
@@ -111,6 +113,8 @@ namespace BeatSaberHTTPStatus {
 			statusManager.gameStatus.ResetMapInfo();
 			statusManager.gameStatus.ResetPerformance();
 
+			noteMapping.Clear();
+
 			// Release references for AfterCutScoreBuffers that don't resolve due to player leaving the map before finishing.
 			noteCutMapping.Clear();
 
@@ -130,6 +134,10 @@ namespace BeatSaberHTTPStatus {
 				scoreController.comboDidChangeEvent -= OnComboDidChange;
 				scoreController.multiplierDidChangeEvent -= OnMultiplierDidChange;
 				scoreController = null;
+			}
+
+			if (beatmapObjectManager != null) { 
+				beatmapObjectManager.noteWasSpawnedEvent -= OnNoteWasSpawned;
 			}
 
 			if (gameplayManager != null) {
@@ -268,6 +276,10 @@ namespace BeatSaberHTTPStatus {
 
 			pauseController = FindFirstOrDefaultOptional<PauseController>();
 			scoreController = FindWithMultiplayerFix<ScoreController>();
+
+			FieldInfo fi = scoreController.GetType().GetField("_beatmapObjectManager", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+			beatmapObjectManager = (BeatmapObjectManager)fi.GetValue(scoreController);
+
 			gameplayManager = FindFirstOrDefaultOptional<StandardLevelGameplayManager>() as MonoBehaviour ?? FindFirstOrDefaultOptional<MissionLevelGameplayManager>();
 			beatmapObjectCallbackController = FindWithMultiplayerFix<BeatmapObjectCallbackController>();
 			gameplayModifiersSO = FindFirstOrDefault<GameplayModifiersModelSO>();
@@ -304,6 +316,8 @@ namespace BeatSaberHTTPStatus {
 			scoreController.comboDidChangeEvent += OnComboDidChange;
 			// public ScoreController#multiplierDidChangeEvent<int, float> // multiplier, progress [0..1]
 			scoreController.multiplierDidChangeEvent += OnMultiplierDidChange;
+
+			beatmapObjectManager.noteWasSpawnedEvent += OnNoteWasSpawned;
 			// public event Action<BeatmapEventData> BeatmapObjectCallbackController#beatmapEventDidTriggerEvent
 			beatmapObjectCallbackController.beatmapEventDidTriggerEvent += OnBeatmapEventDidTrigger;
 			// public event Action GameSongController#songDidFinishEvent;
@@ -547,13 +561,24 @@ namespace BeatSaberHTTPStatus {
 			statusManager.EmitStatusUpdate(ChangedProperties.Beatmap, "resume");
 		}
 
+		public void OnNoteWasSpawned(NoteController noteController) {
+			NoteData noteData = noteController.noteData;
+
+			noteMapping.Add(noteData, noteController);
+
+			SetNoteDataStatus(noteData);
+
+			statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteSpawn");
+
+		}
+
 		public void OnNoteWasCut(NoteData noteData, in NoteCutInfo noteCutInfo, int multiplier) {
 			// Event order: combo, multiplier, scoreController.noteWasCut, (LateUpdate) scoreController.scoreDidChange, afterCut, (LateUpdate) scoreController.scoreDidChange
 
 			var gameStatus = statusManager.gameStatus;
 
 			SetNoteDataStatus(noteData);
-			SetNoteCutStatus(noteCutInfo, true);
+			SetNoteCutStatus(noteCutInfo, noteData, true);
 
 			int beforeCutScore = 0;
 			int afterCutScore = 0;
@@ -618,7 +643,7 @@ namespace BeatSaberHTTPStatus {
 			NoteCutInfo noteCutInfo = noteFullyCutData.noteCutInfo;
 
 			SetNoteDataStatus(noteFullyCutData.noteData);
-			SetNoteCutStatus(noteCutInfo, false);
+			SetNoteCutStatus(noteCutInfo, noteFullyCutData.noteData, false);
 
 			// public static void ScoreModel.RawScoreWithoutMultiplier(ISaberSwingRatingCounter saberSwingRatingCounter, float cutDistanceToCenter, out int beforeCutRawScore, out int afterCutRawScore, out int cutDistanceRawScore)
 			ScoreModel.RawScoreWithoutMultiplier(noteCutInfo.swingRatingCounter, noteCutInfo.cutDistanceToCenter, out beforeCutScore, out afterCutScore, out cutDistanceScore);
@@ -631,12 +656,17 @@ namespace BeatSaberHTTPStatus {
 			statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteFullyCut");
 
 			csb.didFinishEvent.Remove(this);
+
+			noteMapping.Remove(noteFullyCutData.noteData);
 		}
 
 		private void SetNoteDataStatus(NoteData noteData) {
 			GameStatus gameStatus = statusManager.gameStatus;
 
 			gameStatus.ResetNoteCut();
+
+			NoteController noteController = noteMapping[noteData];
+			Vector3 position = noteController.transform.position;
 
 			// Backwards compatibility for <1.12.1
 			gameStatus.noteID = -1;
@@ -663,6 +693,9 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.noteCutDirection = noteData.cutDirection.ToString();
 			gameStatus.noteLine = noteData.lineIndex;
 			gameStatus.noteLayer = (int) noteData.noteLineLayer;
+			gameStatus.notePosX = position.x;
+			gameStatus.notePosY = position.y;
+			gameStatus.notePosZ = position.z;
 			// If long notes are ever introduced, this name will make no sense
 			gameStatus.timeToNextBasicNote = noteData.timeToNextColorNote;
 		}
@@ -670,8 +703,11 @@ namespace BeatSaberHTTPStatus {
 		/// <summary>
 		/// Sets note cut related status data. Should be called after SetNoteDataStatus.
 		/// </summary>
-		private void SetNoteCutStatus(NoteCutInfo noteCutInfo, bool initialCut = true) {
+		private void SetNoteCutStatus(NoteCutInfo noteCutInfo, NoteData noteData, bool initialCut = true) {
 			GameStatus gameStatus = statusManager.gameStatus;
+
+			NoteController noteController = noteMapping[noteData];
+			Vector3 position = noteController.transform.position;
 
 			gameStatus.speedOK = noteCutInfo.speedOK;
 			gameStatus.directionOK = noteCutInfo.directionOK;
@@ -692,6 +728,8 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.cutNormalY = noteCutInfo.cutNormal[1];
 			gameStatus.cutNormalZ = noteCutInfo.cutNormal[2];
 			gameStatus.cutDistanceToCenter = noteCutInfo.cutDistanceToCenter;
+
+			gameStatus.cutDistanceInverted = Vector3.Dot(noteCutInfo.cutNormal, noteCutInfo.cutPoint - position) > 0f;
 		}
 
 		public void OnNoteWasMissed(NoteData noteData, int multiplier) {

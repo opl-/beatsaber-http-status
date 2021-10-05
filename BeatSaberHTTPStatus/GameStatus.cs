@@ -65,6 +65,9 @@ namespace BeatSaberHTTPStatus {
 		public string noteCutDirection = null;
 		public int noteLine = 0;
 		public int noteLayer = 0;
+		public float notePosX = 0;
+		public float notePosY = 0;
+		public float notePosZ = 0;
 		public bool speedOK = false;
 		public bool directionOK = false;
 		public bool saberTypeOK = false;
@@ -88,6 +91,7 @@ namespace BeatSaberHTTPStatus {
 		public float cutNormalY = 0;
 		public float cutNormalZ = 0;
 		public float cutDistanceToCenter = 0;
+		public bool cutDistanceInverted = false;
 		public float timeToNextBasicNote = 0;
 
 		// Mods
@@ -180,6 +184,9 @@ namespace BeatSaberHTTPStatus {
 			this.noteID = -1;
 			this.noteType = null;
 			this.noteCutDirection = null;
+			this.notePosX = 0;
+			this.notePosY = 0;
+			this.notePosZ = 0;
 			this.speedOK = false;
 			this.directionOK = false;
 			this.saberTypeOK = false;
@@ -203,6 +210,7 @@ namespace BeatSaberHTTPStatus {
 			this.cutNormalY = 0;
 			this.cutNormalZ = 0;
 			this.cutDistanceToCenter = 0;
+			this.cutDistanceInverted = false;
 		}
 	}
 }
