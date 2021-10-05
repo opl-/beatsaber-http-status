@@ -131,6 +131,11 @@ NoteCutObject = {
 	"noteCutDirection": "Up" | "Down" | "Left" | "Right" | "UpLeft" | "UpRight" | "DownLeft" | "DownRight" | "Any" | "None", // Direction the note is supposed to be cut in
 	"noteLine": Integer, // The horizontal position of the note, from left to right [0..3]
 	"noteLayer": Integer, // The vertical position of the note, from bottom to top [0..2]
+	"notePos": [ // World position of the note at the time of the event
+        Number, // X value
+        Number, // Y value
+        Number, // Z value
+	],
 	"speedOK": Boolean, // Cut speed was fast enough
 	"directionOK": null | Boolean, // Note was cut in the correct direction. null for bombs.
 	"saberTypeOK": null | Boolean, // Note was cut with the correct saber. null for bombs.
@@ -160,6 +165,7 @@ NoteCutObject = {
 		Number, // Z value
 	],
 	"cutDistanceToCenter": Number, // Distance from the center of the note to the cut plane
+	"cutDistanceInverted": Boolean, // Whether the cut plane is on the negative side of the center of the note
 	"timeToNextBasicNote": Number, // Time until next note in seconds
 }
 ```
@@ -236,6 +242,14 @@ Contains only the `beatmap` property of [Status object](#status-object).
 Fired when the beatmap is resumed.
 
 Contains only the `beatmap` property of [Status object](#status-object).
+
+### `noteSpawn` event
+
+Fired when a note is spawned.
+
+Contains only the `performance` property of [Status object](#status-object).
+
+Contains the `noteCut` property as described in [Note cut object](#note-cut-object). Only the properties describing the note data will be set, leaving the cut and swing related properties with their default values.
 
 ### `noteCut` event
 
