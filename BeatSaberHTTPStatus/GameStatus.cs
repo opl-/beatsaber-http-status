@@ -65,9 +65,9 @@ namespace BeatSaberHTTPStatus {
 		public string noteCutDirection = null;
 		public int noteLine = 0;
 		public int noteLayer = 0;
-		public float notePosX = 0;
-		public float notePosY = 0;
-		public float notePosZ = 0;
+		public float notePositionX = 0;
+		public float notePositionY = 0;
+		public float notePositionZ = 0;
 		public bool speedOK = false;
 		public bool directionOK = false;
 		public bool saberTypeOK = false;
@@ -184,9 +184,9 @@ namespace BeatSaberHTTPStatus {
 			this.noteID = -1;
 			this.noteType = null;
 			this.noteCutDirection = null;
-			this.notePosX = 0;
-			this.notePosY = 0;
-			this.notePosZ = 0;
+			this.notePositionX = 0;
+			this.notePositionY = 0;
+			this.notePositionZ = 0;
 			this.speedOK = false;
 			this.directionOK = false;
 			this.saberTypeOK = false;

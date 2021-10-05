@@ -131,7 +131,7 @@ NoteCutObject = {
 	"noteCutDirection": "Up" | "Down" | "Left" | "Right" | "UpLeft" | "UpRight" | "DownLeft" | "DownRight" | "Any" | "None", // Direction the note is supposed to be cut in
 	"noteLine": Integer, // The horizontal position of the note, from left to right [0..3]
 	"noteLayer": Integer, // The vertical position of the note, from bottom to top [0..2]
-	"notePos": [ // World position of the note at the time of the event
+	"notePosition": [ // World position of the note at the time of the event
         Number, // X value
         Number, // Y value
         Number, // Z value
@@ -247,9 +247,7 @@ Contains only the `beatmap` property of [Status object](#status-object).
 
 Fired when a note is spawned.
 
-Contains only the `performance` property of [Status object](#status-object).
-
-Contains the `noteCut` property as described in [Note cut object](#note-cut-object). Only the properties describing the note data will be set, leaving the cut and swing related properties with their default values.
+Contains only the `noteCut` property as described in [Note cut object](#note-cut-object). Only the properties describing the note data will be set, leaving the cut and swing related properties with their default values.
 
 ### `noteCut` event
 

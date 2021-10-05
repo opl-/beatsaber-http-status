@@ -159,10 +159,10 @@ namespace BeatSaberHTTPStatus {
 			_noteCutJSON["noteCutDirection"] = stringOrNull(gameStatus.noteCutDirection);
 			_noteCutJSON["noteLine"] = gameStatus.noteLine;
 			_noteCutJSON["noteLayer"] = gameStatus.noteLayer;
-			if (!_noteCutJSON["notePos"].IsArray) _noteCutJSON["notePos"] = new JSONArray();
-			_noteCutJSON["notePos"][0] = gameStatus.notePosX;
-			_noteCutJSON["notePos"][1] = gameStatus.notePosY;
-			_noteCutJSON["notePos"][2] = gameStatus.notePosZ;
+			if (!_noteCutJSON["notePosition"].IsArray) _noteCutJSON["notePosition"] = new JSONArray();
+			_noteCutJSON["notePosition"][0] = gameStatus.notePositionX;
+			_noteCutJSON["notePosition"][1] = gameStatus.notePositionY;
+			_noteCutJSON["notePosition"][2] = gameStatus.notePositionZ;
 			_noteCutJSON["speedOK"] = gameStatus.speedOK;
 			_noteCutJSON["directionOK"] = gameStatus.noteType == "Bomb" ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONBool(gameStatus.directionOK);
 			_noteCutJSON["saberTypeOK"] = gameStatus.noteType == "Bomb" ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONBool(gameStatus.saberTypeOK);
@@ -250,6 +250,7 @@ namespace BeatSaberHTTPStatus {
 		public static readonly ChangedProperties Beatmap = new ChangedProperties(false, true, false, false, false, false);
 		public static readonly ChangedProperties Performance = new ChangedProperties(false, false, true, false, false, false);
 		public static readonly ChangedProperties PerformanceAndNoteCut = new ChangedProperties(false, false, true, true, false, false);
+		public static readonly ChangedProperties NoteCut = new ChangedProperties(false, false, false, true, false, false);
 		public static readonly ChangedProperties Mod = new ChangedProperties(false, false, false, false, true, false);
 		public static readonly ChangedProperties BeatmapEvent = new ChangedProperties(false, false, false, false, false, true);
 		public static readonly ChangedProperties BeatmapAndPerformanceAndMod = new ChangedProperties(false, true, true, false, true, false);

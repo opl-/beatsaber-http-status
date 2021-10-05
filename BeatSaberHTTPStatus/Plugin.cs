@@ -60,6 +60,8 @@ namespace BeatSaberHTTPStatus {
 
 		/// private PlayerHeadAndObstacleInteraction ScoreController._playerHeadAndObstacleInteraction;
 		private FieldInfo scoreControllerHeadAndObstacleInteractionField = typeof(ScoreController).GetField("_playerHeadAndObstacleInteraction", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+		/// protected readonly BeatmapObjectManager _beatmapObjectManager
+		private FieldInfo scoreControllerBeatmapObjectManagerField = typeof(ScoreController).GetField("_beatmapObjectManager", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		/// protected readonly LazyCopyHashSet<ISaberSwingRatingCounterDidFinishReceiver> SaberSwingRatingCounter._didFinishReceivers = new LazyCopyHashSet<ISaberSwingRatingCounterDidFinishReceiver>() // contains the desired CutScoreBuffer
 		private FieldInfo saberSwingRatingCounterDidFinishReceiversField = typeof(SaberSwingRatingCounter).GetField("_didFinishReceivers", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 		/// private static LevelCompletionResults.Rank LevelCompletionResults.GetRankForScore(int score, int maxPossibleScore)
@@ -277,10 +279,7 @@ namespace BeatSaberHTTPStatus {
 
 			pauseController = FindFirstOrDefaultOptional<PauseController>();
 			scoreController = FindWithMultiplayerFix<ScoreController>();
-
-			FieldInfo fi = scoreController.GetType().GetField("_beatmapObjectManager", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-			beatmapObjectManager = (BeatmapObjectManager)fi.GetValue(scoreController);
-
+			beatmapObjectManager = (BeatmapObjectManager)scoreControllerBeatmapObjectManagerField.GetValue(scoreController);
 			gameplayManager = FindFirstOrDefaultOptional<StandardLevelGameplayManager>() as MonoBehaviour ?? FindFirstOrDefaultOptional<MissionLevelGameplayManager>();
 			beatmapObjectCallbackController = FindWithMultiplayerFix<BeatmapObjectCallbackController>();
 			gameplayModifiersSO = FindFirstOrDefault<GameplayModifiersModelSO>();
@@ -568,9 +567,7 @@ namespace BeatSaberHTTPStatus {
 			noteMapping.Add(noteData, noteController);
 
 			SetNoteDataStatus(noteData);
-
-			statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteSpawn");
-
+			statusManager.EmitStatusUpdate(ChangedProperties.NoteCut, "noteSpawn");
 		}
 
 		public void OnNoteWasCut(NoteData noteData, in NoteCutInfo noteCutInfo, int multiplier) {
@@ -694,9 +691,9 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.noteCutDirection = noteData.cutDirection.ToString();
 			gameStatus.noteLine = noteData.lineIndex;
 			gameStatus.noteLayer = (int) noteData.noteLineLayer;
-			gameStatus.notePosX = position.x;
-			gameStatus.notePosY = position.y;
-			gameStatus.notePosZ = position.z;
+			gameStatus.notePositionX = position.x;
+			gameStatus.notePositionY = position.y;
+			gameStatus.notePositionZ = position.z;
 			// If long notes are ever introduced, this name will make no sense
 			gameStatus.timeToNextBasicNote = noteData.timeToNextColorNote;
 		}
