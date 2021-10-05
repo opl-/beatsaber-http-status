@@ -138,6 +138,7 @@ namespace BeatSaberHTTPStatus {
 
 			if (beatmapObjectManager != null) { 
 				beatmapObjectManager.noteWasSpawnedEvent -= OnNoteWasSpawned;
+				beatmapObjectManager = null;
 			}
 
 			if (gameplayManager != null) {
