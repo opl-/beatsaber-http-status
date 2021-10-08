@@ -86,6 +86,7 @@ namespace BeatSaberHTTPStatus {
 			beatmapJSON["levelId"] = stringOrNull(gameStatus.levelId);
 			beatmapJSON["songBPM"] = gameStatus.songBPM;
 			beatmapJSON["noteJumpSpeed"] = gameStatus.noteJumpSpeed;
+			beatmapJSON["noteJumpStartBeatOffset"] = gameStatus.noteJumpStartBeatOffset;
 			beatmapJSON["songTimeOffset"] = new JSONNumber(gameStatus.songTimeOffset);
 			beatmapJSON["start"] = gameStatus.start == 0 ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONNumber(gameStatus.start);
 			beatmapJSON["paused"] = gameStatus.paused == 0 ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONNumber(gameStatus.paused);

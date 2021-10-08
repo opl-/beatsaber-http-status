@@ -21,6 +21,7 @@ namespace BeatSaberHTTPStatus {
 		public string levelId = null;
 		public float songBPM;
 		public float noteJumpSpeed;
+		public float noteJumpStartBeatOffset;
 		public long songTimeOffset = 0;
 		public long length = 0;
 		public long start = 0;
@@ -141,6 +142,7 @@ namespace BeatSaberHTTPStatus {
 			this.levelId = null;
 			this.songBPM = 0f;
 			this.noteJumpSpeed = 0f;
+			this.noteJumpStartBeatOffset = 0f;
 			this.songTimeOffset = 0;
 			this.length = 0;
 			this.start = 0;

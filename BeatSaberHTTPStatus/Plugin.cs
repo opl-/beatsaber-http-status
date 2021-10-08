@@ -363,6 +363,7 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.levelAuthorName = level.levelAuthorName;
 			gameStatus.songBPM = level.beatsPerMinute;
 			gameStatus.noteJumpSpeed = diff.noteJumpMovementSpeed;
+			gameStatus.noteJumpStartBeatOffset = diff.noteJumpStartBeatOffset;
 			// 13 is "custom_level_" and 40 is the magic number for the length of the SHA-1 hash
 			gameStatus.songHash = Regex.IsMatch(level.levelID, "^custom_level_[0-9A-F]{40}", RegexOptions.IgnoreCase) && !level.levelID.EndsWith(" WIP") ? level.levelID.Substring(13, 40) : null;
 			gameStatus.levelId = level.levelID;

@@ -46,7 +46,8 @@ StatusObject = {
 		"songHash": String, // Unique beatmap identifier. Same for all difficulties. Is extracted from the levelId and will return null for OST and WIP songs.
 		"levelId": String, // Raw levelId for a song. Same for all difficulties. 
 		"songBPM": Number, // Song Beats Per Minute
-		"noteJumpSpeed": Number, // Song note jump movement speed, how fast the notes move towards the player.
+		"noteJumpSpeed": Number, // Song note jump movement speed, determines how fast the notes move towards the player.
+		"noteJumpStartBeatOffset": Number, // Offset in beats for the Half Jump Duration, tweaks how far away notes spawn from the player.
 		"songTimeOffset": Integer, // Time in millis of where in the song the beatmap starts. Adjusted for song speed multiplier.
 		"start": null | Integer, // UNIX timestamp in millis of when the map was started. Changes if the game is resumed. Might be altered by practice settings.
 		"paused": null | Integer, // If game is paused, UNIX timestamp in millis of when the map was paused. null otherwise.
@@ -165,7 +166,7 @@ NoteCutObject = {
 		Number, // Z value
 	],
 	"cutDistanceToCenter": Number, // Distance from the center of the note to the cut plane
-	"cutDistanceInverted": Boolean, // Whether the cut plane is on the negative side of the center of the note
+	"cutDistanceInverted": Boolean, // Whether the cut plane distance needs to be mirrored when being represented graphically
 	"timeToNextBasicNote": Number, // Time until next note in seconds
 }
 ```
