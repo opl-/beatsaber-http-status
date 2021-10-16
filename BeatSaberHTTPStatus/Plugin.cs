@@ -577,7 +577,7 @@ namespace BeatSaberHTTPStatus {
 			var gameStatus = statusManager.gameStatus;
 
 			SetNoteDataStatus(noteData);
-			SetNoteCutStatus(noteCutInfo, noteData, true);
+			SetNoteCutStatus(noteCutInfo, true);
 
 			int beforeCutScore = 0;
 			int afterCutScore = 0;
@@ -642,7 +642,7 @@ namespace BeatSaberHTTPStatus {
 			NoteCutInfo noteCutInfo = noteFullyCutData.noteCutInfo;
 
 			SetNoteDataStatus(noteFullyCutData.noteData);
-			SetNoteCutStatus(noteCutInfo, noteFullyCutData.noteData, false);
+			SetNoteCutStatus(noteCutInfo, false);
 
 			// public static void ScoreModel.RawScoreWithoutMultiplier(ISaberSwingRatingCounter saberSwingRatingCounter, float cutDistanceToCenter, out int beforeCutRawScore, out int afterCutRawScore, out int cutDistanceRawScore)
 			ScoreModel.RawScoreWithoutMultiplier(noteCutInfo.swingRatingCounter, noteCutInfo.cutDistanceToCenter, out beforeCutScore, out afterCutScore, out cutDistanceScore);
@@ -663,8 +663,6 @@ namespace BeatSaberHTTPStatus {
 			GameStatus gameStatus = statusManager.gameStatus;
 
 			gameStatus.ResetNoteCut();
-
-			NoteController noteController = noteMapping[noteData];
 
 			// Backwards compatibility for <1.12.1
 			gameStatus.noteID = -1;
@@ -698,10 +696,8 @@ namespace BeatSaberHTTPStatus {
 		/// <summary>
 		/// Sets note cut related status data. Should be called after SetNoteDataStatus.
 		/// </summary>
-		private void SetNoteCutStatus(NoteCutInfo noteCutInfo, NoteData noteData, bool initialCut = true) {
+		private void SetNoteCutStatus(NoteCutInfo noteCutInfo, bool initialCut = true) {
 			GameStatus gameStatus = statusManager.gameStatus;
-
-			NoteController noteController = noteMapping[noteData];
 
 			gameStatus.speedOK = noteCutInfo.speedOK;
 			gameStatus.directionOK = noteCutInfo.directionOK;
