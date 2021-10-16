@@ -132,11 +132,6 @@ NoteCutObject = {
 	"noteCutDirection": "Up" | "Down" | "Left" | "Right" | "UpLeft" | "UpRight" | "DownLeft" | "DownRight" | "Any" | "None", // Direction the note is supposed to be cut in
 	"noteLine": Integer, // The horizontal position of the note, from left to right [0..3]
 	"noteLayer": Integer, // The vertical position of the note, from bottom to top [0..2]
-	"notePosition": [ // World position of the note at the time of the event
-        Number, // X value
-        Number, // Y value
-        Number, // Z value
-	],
 	"speedOK": Boolean, // Cut speed was fast enough
 	"directionOK": null | Boolean, // Note was cut in the correct direction. null for bombs.
 	"saberTypeOK": null | Boolean, // Note was cut with the correct saber. null for bombs.
@@ -166,7 +161,6 @@ NoteCutObject = {
 		Number, // Z value
 	],
 	"cutDistanceToCenter": Number, // Distance from the center of the note to the cut plane
-	"cutDistanceInverted": Boolean, // Whether the cut plane distance needs to be mirrored when being represented graphically
 	"timeToNextBasicNote": Number, // Time until next note in seconds
 }
 ```
@@ -244,7 +238,7 @@ Fired when the beatmap is resumed.
 
 Contains only the `beatmap` property of [Status object](#status-object).
 
-### `noteSpawn` event
+### `noteSpawned` event
 
 Fired when a note is spawned.
 

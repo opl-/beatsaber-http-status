@@ -160,10 +160,6 @@ namespace BeatSaberHTTPStatus {
 			_noteCutJSON["noteCutDirection"] = stringOrNull(gameStatus.noteCutDirection);
 			_noteCutJSON["noteLine"] = gameStatus.noteLine;
 			_noteCutJSON["noteLayer"] = gameStatus.noteLayer;
-			if (!_noteCutJSON["notePosition"].IsArray) _noteCutJSON["notePosition"] = new JSONArray();
-			_noteCutJSON["notePosition"][0] = gameStatus.notePositionX;
-			_noteCutJSON["notePosition"][1] = gameStatus.notePositionY;
-			_noteCutJSON["notePosition"][2] = gameStatus.notePositionZ;
 			_noteCutJSON["speedOK"] = gameStatus.speedOK;
 			_noteCutJSON["directionOK"] = gameStatus.noteType == "Bomb" ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONBool(gameStatus.directionOK);
 			_noteCutJSON["saberTypeOK"] = gameStatus.noteType == "Bomb" ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONBool(gameStatus.saberTypeOK);
@@ -190,7 +186,6 @@ namespace BeatSaberHTTPStatus {
 			_noteCutJSON["cutNormal"][1] = gameStatus.cutNormalY;
 			_noteCutJSON["cutNormal"][2] = gameStatus.cutNormalZ;
 			_noteCutJSON["cutDistanceToCenter"] = gameStatus.cutDistanceToCenter;
-			_noteCutJSON["cutDistanceInverted"] = gameStatus.cutDistanceInverted;
 			_noteCutJSON["timeToNextBasicNote"] = gameStatus.timeToNextBasicNote;
 		}
 
