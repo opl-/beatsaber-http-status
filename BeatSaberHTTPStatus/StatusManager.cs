@@ -86,6 +86,7 @@ namespace BeatSaberHTTPStatus {
 			beatmapJSON["levelId"] = stringOrNull(gameStatus.levelId);
 			beatmapJSON["songBPM"] = gameStatus.songBPM;
 			beatmapJSON["noteJumpSpeed"] = gameStatus.noteJumpSpeed;
+			beatmapJSON["noteJumpStartBeatOffset"] = gameStatus.noteJumpStartBeatOffset;
 			beatmapJSON["songTimeOffset"] = new JSONNumber(gameStatus.songTimeOffset);
 			beatmapJSON["start"] = gameStatus.start == 0 ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONNumber(gameStatus.start);
 			beatmapJSON["paused"] = gameStatus.paused == 0 ? (JSONNode) JSONNull.CreateOrGet() : (JSONNode) new JSONNumber(gameStatus.paused);
@@ -245,6 +246,7 @@ namespace BeatSaberHTTPStatus {
 		public static readonly ChangedProperties Beatmap = new ChangedProperties(false, true, false, false, false, false);
 		public static readonly ChangedProperties Performance = new ChangedProperties(false, false, true, false, false, false);
 		public static readonly ChangedProperties PerformanceAndNoteCut = new ChangedProperties(false, false, true, true, false, false);
+		public static readonly ChangedProperties NoteCut = new ChangedProperties(false, false, false, true, false, false);
 		public static readonly ChangedProperties Mod = new ChangedProperties(false, false, false, false, true, false);
 		public static readonly ChangedProperties BeatmapEvent = new ChangedProperties(false, false, false, false, false, true);
 		public static readonly ChangedProperties BeatmapAndPerformanceAndMod = new ChangedProperties(false, true, true, false, true, false);

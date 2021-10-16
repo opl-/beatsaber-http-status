@@ -31,6 +31,7 @@ namespace BeatSaberHTTPStatus {
 		private GameplayCoreSceneSetupData gameplayCoreSceneSetupData;
 		private PauseController pauseController;
 		private ScoreController scoreController;
+		private BeatmapObjectManager beatmapObjectManager;
 		private MultiplayerSessionManager multiplayerSessionManager;
 		private MultiplayerController multiplayerController;
 		private MultiplayerLocalActivePlayerFacade multiplayerLocalActivePlayerFacade;
@@ -43,6 +44,7 @@ namespace BeatSaberHTTPStatus {
 		private PlayerHeadAndObstacleInteraction playerHeadAndObstacleInteraction;
 		private GameSongController gameSongController;
 		private GameEnergyCounter gameEnergyCounter;
+		private Dictionary<NoteData, NoteController> noteMapping = new Dictionary<NoteData, NoteController>();
 		private Dictionary<CutScoreBuffer, NoteFullyCutData> noteCutMapping = new Dictionary<CutScoreBuffer, NoteFullyCutData>();
 		/// <summary>
 		/// Beat Saber 1.12.1 removes NoteData.id, forcing us to generate our own note IDs to allow users to easily link events about the same note.
@@ -58,6 +60,8 @@ namespace BeatSaberHTTPStatus {
 
 		/// private PlayerHeadAndObstacleInteraction ScoreController._playerHeadAndObstacleInteraction;
 		private FieldInfo scoreControllerHeadAndObstacleInteractionField = typeof(ScoreController).GetField("_playerHeadAndObstacleInteraction", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+		/// protected readonly BeatmapObjectManager _beatmapObjectManager
+		private FieldInfo scoreControllerBeatmapObjectManagerField = typeof(ScoreController).GetField("_beatmapObjectManager", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		/// protected readonly LazyCopyHashSet<ISaberSwingRatingCounterDidFinishReceiver> SaberSwingRatingCounter._didFinishReceivers = new LazyCopyHashSet<ISaberSwingRatingCounterDidFinishReceiver>() // contains the desired CutScoreBuffer
 		private FieldInfo saberSwingRatingCounterDidFinishReceiversField = typeof(SaberSwingRatingCounter).GetField("_didFinishReceivers", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 		/// private static LevelCompletionResults.Rank LevelCompletionResults.GetRankForScore(int score, int maxPossibleScore)
@@ -111,6 +115,8 @@ namespace BeatSaberHTTPStatus {
 			statusManager.gameStatus.ResetMapInfo();
 			statusManager.gameStatus.ResetPerformance();
 
+			noteMapping.Clear();
+
 			// Release references for AfterCutScoreBuffers that don't resolve due to player leaving the map before finishing.
 			noteCutMapping.Clear();
 
@@ -130,6 +136,11 @@ namespace BeatSaberHTTPStatus {
 				scoreController.comboDidChangeEvent -= OnComboDidChange;
 				scoreController.multiplierDidChangeEvent -= OnMultiplierDidChange;
 				scoreController = null;
+			}
+
+			if (beatmapObjectManager != null) { 
+				beatmapObjectManager.noteWasSpawnedEvent -= OnNoteWasSpawned;
+				beatmapObjectManager = null;
 			}
 
 			if (gameplayManager != null) {
@@ -268,6 +279,7 @@ namespace BeatSaberHTTPStatus {
 
 			pauseController = FindFirstOrDefaultOptional<PauseController>();
 			scoreController = FindWithMultiplayerFix<ScoreController>();
+			beatmapObjectManager = (BeatmapObjectManager) scoreControllerBeatmapObjectManagerField.GetValue(scoreController);
 			gameplayManager = FindFirstOrDefaultOptional<StandardLevelGameplayManager>() as MonoBehaviour ?? FindFirstOrDefaultOptional<MissionLevelGameplayManager>();
 			beatmapObjectCallbackController = FindWithMultiplayerFix<BeatmapObjectCallbackController>();
 			gameplayModifiersSO = FindFirstOrDefault<GameplayModifiersModelSO>();
@@ -304,6 +316,8 @@ namespace BeatSaberHTTPStatus {
 			scoreController.comboDidChangeEvent += OnComboDidChange;
 			// public ScoreController#multiplierDidChangeEvent<int, float> // multiplier, progress [0..1]
 			scoreController.multiplierDidChangeEvent += OnMultiplierDidChange;
+
+			beatmapObjectManager.noteWasSpawnedEvent += OnNoteWasSpawned;
 			// public event Action<BeatmapEventData> BeatmapObjectCallbackController#beatmapEventDidTriggerEvent
 			beatmapObjectCallbackController.beatmapEventDidTriggerEvent += OnBeatmapEventDidTrigger;
 			// public event Action GameSongController#songDidFinishEvent;
@@ -349,6 +363,7 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.levelAuthorName = level.levelAuthorName;
 			gameStatus.songBPM = level.beatsPerMinute;
 			gameStatus.noteJumpSpeed = diff.noteJumpMovementSpeed;
+			gameStatus.noteJumpStartBeatOffset = diff.noteJumpStartBeatOffset;
 			// 13 is "custom_level_" and 40 is the magic number for the length of the SHA-1 hash
 			gameStatus.songHash = Regex.IsMatch(level.levelID, "^custom_level_[0-9A-F]{40}", RegexOptions.IgnoreCase) && !level.levelID.EndsWith(" WIP") ? level.levelID.Substring(13, 40) : null;
 			gameStatus.levelId = level.levelID;
@@ -547,6 +562,15 @@ namespace BeatSaberHTTPStatus {
 			statusManager.EmitStatusUpdate(ChangedProperties.Beatmap, "resume");
 		}
 
+		public void OnNoteWasSpawned(NoteController noteController) {
+			NoteData noteData = noteController.noteData;
+
+			noteMapping.Add(noteData, noteController);
+
+			SetNoteDataStatus(noteData);
+			statusManager.EmitStatusUpdate(ChangedProperties.NoteCut, "noteSpawned");
+		}
+
 		public void OnNoteWasCut(NoteData noteData, in NoteCutInfo noteCutInfo, int multiplier) {
 			// Event order: combo, multiplier, scoreController.noteWasCut, (LateUpdate) scoreController.scoreDidChange, afterCut, (LateUpdate) scoreController.scoreDidChange
 
@@ -631,6 +655,8 @@ namespace BeatSaberHTTPStatus {
 			statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteFullyCut");
 
 			csb.didFinishEvent.Remove(this);
+
+			noteMapping.Remove(noteFullyCutData.noteData);
 		}
 
 		private void SetNoteDataStatus(NoteData noteData) {

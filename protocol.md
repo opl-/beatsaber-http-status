@@ -46,7 +46,8 @@ StatusObject = {
 		"songHash": String, // Unique beatmap identifier. Same for all difficulties. Is extracted from the levelId and will return null for OST and WIP songs.
 		"levelId": String, // Raw levelId for a song. Same for all difficulties. 
 		"songBPM": Number, // Song Beats Per Minute
-		"noteJumpSpeed": Number, // Song note jump movement speed, how fast the notes move towards the player.
+		"noteJumpSpeed": Number, // Song note jump movement speed, determines how fast the notes move towards the player.
+		"noteJumpStartBeatOffset": Number, // Offset in beats for the Half Jump Duration, tweaks how far away notes spawn from the player.
 		"songTimeOffset": Integer, // Time in millis of where in the song the beatmap starts. Adjusted for song speed multiplier.
 		"start": null | Integer, // UNIX timestamp in millis of when the map was started. Changes if the game is resumed. Might be altered by practice settings.
 		"paused": null | Integer, // If game is paused, UNIX timestamp in millis of when the map was paused. null otherwise.
@@ -236,6 +237,12 @@ Contains only the `beatmap` property of [Status object](#status-object).
 Fired when the beatmap is resumed.
 
 Contains only the `beatmap` property of [Status object](#status-object).
+
+### `noteSpawned` event
+
+Fired when a note is spawned.
+
+Contains only the `noteCut` property as described in [Note cut object](#note-cut-object). Only the properties describing the note data will be set, leaving the cut and swing related properties with their default values.
 
 ### `noteCut` event
 
