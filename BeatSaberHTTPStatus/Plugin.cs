@@ -44,7 +44,7 @@ namespace BeatSaberHTTPStatus {
 		private PlayerHeadAndObstacleInteraction playerHeadAndObstacleInteraction;
 		private GameSongController gameSongController;
 		private GameEnergyCounter gameEnergyCounter;
-		private Dictionary<NoteData, NoteController> noteMapping = new Dictionary<NoteData, NoteController>();
+		private Dictionary<NoteData, NoteController> noteControllerMapping = new Dictionary<NoteData, NoteController>();
 		private Dictionary<CutScoreBuffer, NoteFullyCutData> noteCutMapping = new Dictionary<CutScoreBuffer, NoteFullyCutData>();
 		/// <summary>
 		/// Beat Saber 1.12.1 removes NoteData.id, forcing us to generate our own note IDs to allow users to easily link events about the same note.
@@ -115,7 +115,7 @@ namespace BeatSaberHTTPStatus {
 			statusManager.gameStatus.ResetMapInfo();
 			statusManager.gameStatus.ResetPerformance();
 
-			noteMapping.Clear();
+			noteControllerMapping.Clear();
 
 			// Release references for AfterCutScoreBuffers that don't resolve due to player leaving the map before finishing.
 			noteCutMapping.Clear();
@@ -565,7 +565,7 @@ namespace BeatSaberHTTPStatus {
 		public void OnNoteWasSpawned(NoteController noteController) {
 			NoteData noteData = noteController.noteData;
 
-			noteMapping.Add(noteData, noteController);
+			noteControllerMapping.Add(noteData, noteController);
 
 			SetNoteDataStatus(noteData);
 			statusManager.EmitStatusUpdate(ChangedProperties.NoteCut, "noteSpawned");
@@ -656,7 +656,7 @@ namespace BeatSaberHTTPStatus {
 
 			csb.didFinishEvent.Remove(this);
 
-			noteMapping.Remove(noteFullyCutData.noteData);
+			noteControllerMapping.Remove(noteFullyCutData.noteData);
 		}
 
 		private void SetNoteDataStatus(NoteData noteData) {
