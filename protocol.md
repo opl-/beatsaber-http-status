@@ -2,6 +2,14 @@
 
 This document describes the protocol used by the Beat Saber HTTP Status plugin.
 
+## Index
+
+1. [Connecting](#connecting)
+1. [Endpoints](#endpoints)
+1. [Standard objects](#standard-objects)
+1. [Events](#events)
+
+
 ## Connecting
 
 The web server by default runs on port `6557` (**B**eat **S**aber **ST**atus). Secure connections are currently not supported.
