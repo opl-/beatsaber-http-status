@@ -45,22 +45,22 @@ StatusObject = {
 		"levelAuthorName": String, // Beatmap author name
 		"songCover": null | String, // Base64 encoded PNG image of the song cover
 		"songHash": String, // Unique beatmap identifier. Same for all difficulties. Is extracted from the levelId and will return null for OST and WIP songs.
-		"levelId": String, // Raw levelId for a song. Same for all difficulties. 
+		"levelId": String, // Raw levelId for a song. Same for all difficulties.
 		"songBPM": Number, // Song Beats Per Minute
 		"noteJumpSpeed": Number, // Song note jump movement speed, determines how fast the notes move towards the player.
 		"noteJumpStartBeatOffset": Number, // Offset in beats for the Half Jump Duration, tweaks how far away notes spawn from the player.
-		"songTimeOffset": Integer, // Time in millis of where in the song the beatmap starts. Adjusted for song speed multiplier.
-		"start": null | Integer, // UNIX timestamp in millis of when the map was started. Changes if the game is resumed. Might be altered by practice settings.
-		"paused": null | Integer, // If game is paused, UNIX timestamp in millis of when the map was paused. null otherwise.
-		"length": Integer, // Length of map in millis. Adjusted for song speed multiplier.
+		"songTimeOffset": Integer, // Time in milliseconds of where in the song the beatmap starts. Adjusted for song speed multiplier.
+		"start": null | Integer, // UNIX timestamp in milliseconds of when the map was started. Changes if the game is resumed. Might be altered by practice settings.
+		"paused": null | Integer, // If game is paused, UNIX timestamp in milliseconds of when the map was paused. null otherwise.
+		"length": Integer, // Length of map in milliseconds. Adjusted for song speed multiplier.
 		"difficulty": String, // Translated beatmap difficulty name. If SongCore is installed, this may contain a custom difficulty label defined by the beatmap.
 		"difficultyEnum": "Easy" | "Normal" | "Hard" | "Expert" | "ExpertPlus", // Beatmap difficulty
 		"notesCount": Integer, // Map cube count
 		"bombsCount": Integer, // Map bomb count. Set even with No Bombs modifier enabled.
 		"obstaclesCount": Integer, // Map obstacle count. Set even with No Obstacles modifier enabled.
-		"maxScore": Integer, // Max score obtainable on the map with modifier multiplier
+		"maxScore": Integer, // Max score obtainable on the map with the current modifier multiplier
 		"maxRank": "SSS" | "SS" | "S" | "A" | "B" | "C" | "D" | "E", // Max rank obtainable using current modifiers
-		"environmentName": String, // Name of the environment this beatmap requested // TODO: list available names
+		"environmentName": String, // Name of the environment this beatmap requested. See https://bsmg.wiki/mapping/basic-lighting.html#environment-previews for a current list of environments.
 		"color": { // Contains colors used by this environment. If overrides were set by the player, they replace the values provided by the environment. SongCore may override the colors based on beatmap settings, including player overrides. Each color is stored as an array of three integers in the range [0..255] representing the red, green, and blue values in order.
 			"saberA": [Integer, Integer, Integer], // Color of the left saber and its notes
 			"saberB": [Integer, Integer, Integer], // Color of the right saber and its notes
@@ -147,7 +147,7 @@ NoteCutObject = {
 	"wasCutTooSoon": Boolean, // Note was cut too early
 	"initialScore": null | Integer, // Score without multipliers for the cut. It contains the prehit swing score and the cutDistanceScore, but doesn't include the score for swinging after cut. [0..85] null for bombs.
 	"finalScore": null | Integer, // Score without multipliers for the entire cut, including score for swinging after cut. [0..115] Available in [`noteFullyCut` event](#notefullycut-event). null for bombs.
-	"cutDistanceScore": null | Integer, // Score for the hit itself. [0..15] 
+	"cutDistanceScore": null | Integer, // Score for how close the cut plane was to the note center. [0..15]
 	"multiplier": Integer, // Combo multiplier at the time of cut
 	"saberSpeed": Number, // Speed of the saber when the note was cut
 	"saberDir": [ // Direction in note space that the saber was moving in on the collision frame, calculated by subtracting the position of the saber's tip on the previous frame from its current position (current - previous).
@@ -157,7 +157,7 @@ NoteCutObject = {
 	],
 	"saberType": "SaberA" | "SaberB", // Saber used to cut this note
 	"swingRating": Number, // Game's swing rating. Uses the before cut rating in noteCut events and after cut rating for noteFullyCut events. -1 for bombs.
-	"timeDeviation": Number, // Time offset in seconds from the perfect time to cut a note
+	"timeDeviation": Number, // Time offset in seconds from the perfect time to cut the note
 	"cutDirectionDeviation": Number, // Offset from the perfect cut angle in degrees
 	"cutPoint": [ // Position in note space of the point on the cut plane closests to the note center
 		Number, // X value
@@ -251,7 +251,7 @@ Contains only the `beatmap` property of [Status object](#status-object).
 
 Fired when a note is spawned.
 
-Contains only the `noteCut` property as described in [Note cut object](#note-cut-object). Only the properties describing the note data will be set, leaving the cut and swing related properties with their default values.
+Contains only the `noteCut` property as described in [Note cut object](#note-cut-object). Only the properties describing the note data will be set, leaving the cut and swing related properties at their default values.
 
 ### `noteCut` event
 
@@ -259,11 +259,11 @@ Fired when a note is correctly cut.
 
 Contains only the `performance` property of [Status object](#status-object) and a `noteCut` property as described in [Note cut object](#note-cut-object).
 
-Also see: [`noteFullyCut` event](#notefullycut-event).
+See also: [`noteFullyCut` event](#notefullycut-event).
 
 ### `noteFullyCut` event
 
-Fired when the `AfterCutScoreBuffer` finishes, ie. the game finishes gathering data to calculated the cut exit score. The field `performance.lastNoteScore` is updated right before this event is fired. This even is not fired for bomb notes.
+Fired when the `AfterCutScoreBuffer` finishes, ie. the game finishes gathering data to calculate the cut exit score. The field `performance.lastNoteScore` is updated right before this event is fired. This event is not fired for bomb notes.
 
 Contains only the `performance` property of [Status object](#status-object) and a `noteCut` property as described in [Note cut object](#note-cut-object).
 
@@ -273,7 +273,7 @@ Fired when a note is either not cut or cut incorrectly. See [`bombMissed` event]
 
 Contains only the `performance` property of [Status object](#status-object).
 
-Contains the `noteCut` property with an object value as described in [Note cut object](#note-cut-object). Only the properties describing the note data will be set, leaving the cut and swing related properties with their default values.
+Contains the `noteCut` property with an object value as described in [Note cut object](#note-cut-object). Only the properties describing the note data will be set, leaving the cut and swing related properties at their default values.
 
 ### `bombCut` event
 
@@ -283,11 +283,11 @@ Contains only the `performance` property of [Status object](#status-object) and 
 
 ### `bombMissed` event
 
-Fired when a bomb is missed.
+Fired when a bomb is passed.
 
 Contains only the `performance` property of [Status object](#status-object).
 
-Contains the `noteCut` property with an object value as described in [Note cut object](#note-cut-object). Only the properties describing the note data will be set, leaving the cut and swing related properties with their default values.
+Contains the `noteCut` property with an object value as described in [Note cut object](#note-cut-object). Only the properties describing the note data will be set, leaving the cut and swing related properties at their default values.
 
 ### `obstacleEnter` event
 
