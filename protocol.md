@@ -125,6 +125,14 @@ StatusObject = {
 
 ### Note cut object
 
+Each note cut has a **cut plane**, which is a plane defined by three points of the cutting saber:
+
+- its top on the frame the collision happened,
+- its bottom on the frame the collision happened,
+- its center on the frame previous to the collision frame.
+
+In **note space**, positive X, positive Y, and positive Z represent right, up, and forward respectively. The arrow of a directional note is always located at positive Y and pointing towards negative Y. The space origin is the center of the note.
+
 ```js
 NoteCutObject = {
 	"noteID": Integer, // ID of the note
@@ -141,7 +149,7 @@ NoteCutObject = {
 	"cutDistanceScore": null | Integer, // Score for the hit itself. [0..15] 
 	"multiplier": Integer, // Combo multiplier at the time of cut
 	"saberSpeed": Number, // Speed of the saber when the note was cut
-	"saberDir": [ // Direction the saber was moving in when the note was cut
+	"saberDir": [ // Direction in note space that the saber was moving in on the collision frame, calculated by subtracting the position of the saber's tip on the previous frame from its current position (current - previous).
 		Number, // X value
 		Number, // Y value
 		Number, // Z value
@@ -150,12 +158,12 @@ NoteCutObject = {
 	"swingRating": Number, // Game's swing rating. Uses the before cut rating in noteCut events and after cut rating for noteFullyCut events. -1 for bombs.
 	"timeDeviation": Number, // Time offset in seconds from the perfect time to cut a note
 	"cutDirectionDeviation": Number, // Offset from the perfect cut angle in degrees
-	"cutPoint": [ // Position of the point on the cut plane closests to the note center
+	"cutPoint": [ // Position in note space of the point on the cut plane closests to the note center
 		Number, // X value
 		Number, // Y value
 		Number, // Z value
 	],
-	"cutNormal": [ // Normal of the ideal plane to cut along
+	"cutNormal": [ // Normalized vector describing the normal of the cut plane in note space. Points towards negative X on a correct cut of a directional note.
 		Number, // X value
 		Number, // Y value
 		Number, // Z value

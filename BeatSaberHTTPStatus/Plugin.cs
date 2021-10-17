@@ -577,7 +577,7 @@ namespace BeatSaberHTTPStatus {
 			var gameStatus = statusManager.gameStatus;
 
 			SetNoteDataStatus(noteData);
-			SetNoteCutStatus(noteCutInfo, true);
+			SetNoteCutStatus(noteCutInfo, noteData, true);
 
 			int beforeCutScore = 0;
 			int afterCutScore = 0;
@@ -642,7 +642,7 @@ namespace BeatSaberHTTPStatus {
 			NoteCutInfo noteCutInfo = noteFullyCutData.noteCutInfo;
 
 			SetNoteDataStatus(noteFullyCutData.noteData);
-			SetNoteCutStatus(noteCutInfo, false);
+			SetNoteCutStatus(noteCutInfo, noteFullyCutData.noteData, false);
 
 			// public static void ScoreModel.RawScoreWithoutMultiplier(ISaberSwingRatingCounter saberSwingRatingCounter, float cutDistanceToCenter, out int beforeCutRawScore, out int afterCutRawScore, out int cutDistanceRawScore)
 			ScoreModel.RawScoreWithoutMultiplier(noteCutInfo.swingRatingCounter, noteCutInfo.cutDistanceToCenter, out beforeCutScore, out afterCutScore, out cutDistanceScore);
@@ -696,27 +696,32 @@ namespace BeatSaberHTTPStatus {
 		/// <summary>
 		/// Sets note cut related status data. Should be called after SetNoteDataStatus.
 		/// </summary>
-		private void SetNoteCutStatus(NoteCutInfo noteCutInfo, bool initialCut = true) {
+		private void SetNoteCutStatus(NoteCutInfo noteCutInfo, NoteData noteData, bool initialCut = true) {
 			GameStatus gameStatus = statusManager.gameStatus;
+
+			var transform = noteControllerMapping[noteData].noteTransform;
 
 			gameStatus.speedOK = noteCutInfo.speedOK;
 			gameStatus.directionOK = noteCutInfo.directionOK;
 			gameStatus.saberTypeOK = noteCutInfo.saberTypeOK;
 			gameStatus.wasCutTooSoon = noteCutInfo.wasCutTooSoon;
 			gameStatus.saberSpeed = noteCutInfo.saberSpeed;
-			gameStatus.saberDirX = noteCutInfo.saberDir[0];
-			gameStatus.saberDirY = noteCutInfo.saberDir[1];
-			gameStatus.saberDirZ = noteCutInfo.saberDir[2];
+			var saberDir = transform.InverseTransformDirection(noteCutInfo.saberDir);
+			gameStatus.saberDirX = saberDir[0];
+			gameStatus.saberDirY = saberDir[1];
+			gameStatus.saberDirZ = saberDir[2];
 			gameStatus.saberType = noteCutInfo.saberType.ToString();
 			gameStatus.swingRating = noteCutInfo.swingRatingCounter == null ? -1 : initialCut ? noteCutInfo.swingRatingCounter.beforeCutRating : noteCutInfo.swingRatingCounter.afterCutRating;
 			gameStatus.timeDeviation = noteCutInfo.timeDeviation;
 			gameStatus.cutDirectionDeviation = noteCutInfo.cutDirDeviation;
-			gameStatus.cutPointX = noteCutInfo.cutPoint[0];
-			gameStatus.cutPointY = noteCutInfo.cutPoint[1];
-			gameStatus.cutPointZ = noteCutInfo.cutPoint[2];
-			gameStatus.cutNormalX = noteCutInfo.cutNormal[0];
-			gameStatus.cutNormalY = noteCutInfo.cutNormal[1];
-			gameStatus.cutNormalZ = noteCutInfo.cutNormal[2];
+			var cutPoint = transform.InverseTransformPoint(noteCutInfo.cutPoint);
+			gameStatus.cutPointX = cutPoint[0];
+			gameStatus.cutPointY = cutPoint[1];
+			gameStatus.cutPointZ = cutPoint[2];
+			var cutNormal = transform.InverseTransformDirection(noteCutInfo.cutNormal);
+			gameStatus.cutNormalX = cutNormal[0];
+			gameStatus.cutNormalY = cutNormal[1];
+			gameStatus.cutNormalZ = cutNormal[2];
 			gameStatus.cutDistanceToCenter = noteCutInfo.cutDistanceToCenter;
 		}
 
