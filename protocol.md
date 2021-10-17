@@ -255,7 +255,7 @@ Contains only the `noteCut` property as described in [Note cut object](#note-cut
 
 ### `noteCut` event
 
-Fired when a note is cut.
+Fired when a note is correctly cut.
 
 Contains only the `performance` property of [Status object](#status-object) and a `noteCut` property as described in [Note cut object](#note-cut-object).
 
@@ -269,7 +269,7 @@ Contains only the `performance` property of [Status object](#status-object) and 
 
 ### `noteMissed` event
 
-Fired when a note is missed.
+Fired when a note is either not cut or cut incorrectly. See [`bombMissed` event](#bombmissed-event) for bomb notes.
 
 Contains only the `performance` property of [Status object](#status-object).
 
