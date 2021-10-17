@@ -23,6 +23,7 @@ Use this path to connect to the WebSocket. The WebSocket will send the [hello ev
 ```js
 EventObject = {
 	"event": String, // See [Events](#events)
+	"time": Integer, // UNIX timestamp in milliseconds of the moment this event happened
 	"status": Object, // See [Status object](#status-object). May be partial, depending on the event type.
 }
 ```
