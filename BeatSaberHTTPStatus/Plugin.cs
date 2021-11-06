@@ -563,7 +563,8 @@ namespace BeatSaberHTTPStatus {
 		public void OnNoteWasSpawned(NoteController noteController) {
 			NoteData noteData = noteController.noteData;
 
-			noteControllerMapping.Add(noteData, noteController);
+			// Practice plugin can spawn a note multiple times when rewinding: override the controller mapping without throwing
+			noteControllerMapping[noteData] = noteController;
 
 			SetNoteDataStatus(noteData);
 			statusManager.EmitStatusUpdate(ChangedProperties.NoteCut, "noteSpawned");
