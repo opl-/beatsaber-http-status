@@ -116,6 +116,10 @@ namespace BeatSaberHTTPStatus {
 			noteControllerMapping.Clear();
 
 			// Release references for AfterCutScoreBuffers that don't resolve due to player leaving the map before finishing.
+			foreach (var noteCutItem in noteCutMapping) {
+				// CutScoreBuffers are pooled. Remove the event listener just in case it never fires the event.
+				noteCutItem.Key.didFinishEvent.Remove(this);
+			}
 			noteCutMapping.Clear();
 
 			// Clear note id mappings.
@@ -627,6 +631,8 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public void HandleCutScoreBufferDidFinish(CutScoreBuffer csb) {
+			csb.didFinishEvent.Remove(this);
+
 			OnNoteWasFullyCut(csb);
 		}
 
@@ -652,8 +658,6 @@ namespace BeatSaberHTTPStatus {
 			statusManager.gameStatus.cutMultiplier = csb.multiplier;
 
 			statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteFullyCut");
-
-			csb.didFinishEvent.Remove(this);
 
 			noteControllerMapping.Remove(noteFullyCutData.noteData);
 		}
