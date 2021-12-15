@@ -63,6 +63,7 @@ StatusObject = {
 		"length": Integer, // Length of map in milliseconds. Adjusted for song speed multiplier.
 		"difficulty": String, // Translated beatmap difficulty name. If SongCore is installed, this may contain a custom difficulty label defined by the beatmap.
 		"difficultyEnum": "Easy" | "Normal" | "Hard" | "Expert" | "ExpertPlus", // Beatmap difficulty
+		"characteristic": String, // Beatmap characteristic
 		"notesCount": Integer, // Map cube count
 		"bombsCount": Integer, // Map bomb count. Set even with No Bombs modifier enabled.
 		"obstaclesCount": Integer, // Map obstacle count. Set even with No Obstacles modifier enabled.
