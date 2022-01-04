@@ -64,8 +64,8 @@ namespace BeatSaberHTTPStatus {
 			gameJSON["pluginVersion"] = BeatSaberHTTPStatus.Plugin.PluginVersion;
 			gameJSON["gameVersion"] = BeatSaberHTTPStatus.Plugin.GameVersion;
 			gameJSON["scene"] = stringOrNull(gameStatus.scene);
-			// This was an awful idea.
-			gameJSON["mode"] = stringOrNull(gameStatus.mode == null ? null : (gameStatus.multiplayer ? "Multiplayer" : gameStatus.partyMode ? "Party" : "Solo") + gameStatus.mode);
+			// This was an awful idea. Backwards compatibility for ancient versions.
+			gameJSON["mode"] = stringOrNull(gameStatus.characteristic == null ? null : (gameStatus.multiplayer ? "Multiplayer" : gameStatus.partyMode ? "Party" : "Solo") + gameStatus.characteristic);
 		}
 
 		private void UpdateBeatmapJSON() {
@@ -93,6 +93,7 @@ namespace BeatSaberHTTPStatus {
 			beatmapJSON["length"] = new JSONNumber(gameStatus.length);
 			beatmapJSON["difficulty"] = stringOrNull(gameStatus.difficulty);
 			beatmapJSON["difficultyEnum"] = stringOrNull(gameStatus.difficultyEnum);
+			beatmapJSON["characteristic"] = stringOrNull(gameStatus.characteristic);
 			beatmapJSON["notesCount"] = gameStatus.notesCount;
 			beatmapJSON["bombsCount"] = gameStatus.bombsCount;
 			beatmapJSON["obstaclesCount"] = gameStatus.obstaclesCount;

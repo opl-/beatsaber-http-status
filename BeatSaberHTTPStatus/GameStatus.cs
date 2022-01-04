@@ -9,7 +9,6 @@ namespace BeatSaberHTTPStatus {
 		public string scene = "Menu";
 		public bool multiplayer = false;
 		public bool partyMode = false;
-		public string mode = null;
 
 		// Beatmap
 		public string songName = null;
@@ -28,6 +27,7 @@ namespace BeatSaberHTTPStatus {
 		public long paused = 0;
 		public string difficulty = null;
 		public string difficultyEnum = null;
+		public string characteristic = null;
 		public int notesCount = 0;
 		public int bombsCount = 0;
 		public int obstaclesCount = 0;
@@ -145,6 +145,7 @@ namespace BeatSaberHTTPStatus {
 			this.paused = 0;
 			this.difficulty = null;
 			this.difficultyEnum = null;
+			this.characteristic = null;
 			this.notesCount = 0;
 			this.obstaclesCount = 0;
 			this.maxScore = 0;

@@ -335,7 +335,6 @@ namespace BeatSaberHTTPStatus {
 			IBeatmapLevel level = diff.level;
 
 			gameStatus.partyMode = Gamemode.IsPartyActive;
-			gameStatus.mode = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData.difficultyBeatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName;
 
 			gameplayModifiers = gameplayCoreSceneSetupData.gameplayModifiers;
 			gameplayModiferParamsList = gameplayModifiersSO.CreateModifierParamsList(gameplayModifiers);
@@ -376,6 +375,7 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.paused = 0;
 			gameStatus.difficulty = diff.difficulty.Name();
 			gameStatus.difficultyEnum = Enum.GetName(typeof(BeatmapDifficulty), diff.difficulty);
+			gameStatus.characteristic = diff.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName;
 			gameStatus.notesCount = diff.beatmapData.cuttableNotesCount;
 			gameStatus.bombsCount = diff.beatmapData.bombsCount;
 			gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;

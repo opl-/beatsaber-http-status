@@ -44,7 +44,7 @@ StatusObject = {
 		"pluginVersion": String, // Currently running version of the plugin
 		"gameVersion": String, // Version of the game the current plugin version is targetting
 		"scene": "Menu" | "Song" | "Spectator", // Indicates player's current activity
-		"mode": null | "SoloStandard" | "SoloOneSaber" | "SoloNoArrows" | "PartyStandard" | "PartyOneSaber" | "PartyNoArrows" | "MultiplayerStandard" | "MultiplayerOneSaber" | "MultiplayerNoArrows", // Composed of game mode and map characteristic
+		"mode": null | "Solo<beatmap.characteristic>" | "Party<beatmap.characteristic>" | "Multiplayer<beatmap.characteristic>", // Composed of game mode and map characteristic. The value is composed for backwards compability. For characteristic, use `beatmap.characteristic` instead. For game mode, compare beginning of string to a constant, or get a substring using length of `beatmap.characteristic`.
 	},
 	"beatmap": null | {
 		"songName": String, // Song name
@@ -63,6 +63,7 @@ StatusObject = {
 		"length": Integer, // Length of map in milliseconds. Adjusted for song speed multiplier.
 		"difficulty": String, // Translated beatmap difficulty name. If SongCore is installed, this may contain a custom difficulty label defined by the beatmap.
 		"difficultyEnum": "Easy" | "Normal" | "Hard" | "Expert" | "ExpertPlus", // Beatmap difficulty
+		"characteristic": "Standard" | "NoArrows" | "OneSaber" | "360Degree" | "90Degree" | "Lightshow" | "Lawless" | String, // Characteristic of the set this beatmap belongs to. See https://bsmg.wiki/mapping/map-format.html#beatmapcharacteristicname for a current list of characteristics.
 		"notesCount": Integer, // Map cube count
 		"bombsCount": Integer, // Map bomb count. Set even with No Bombs modifier enabled.
 		"obstaclesCount": Integer, // Map obstacle count. Set even with No Obstacles modifier enabled.
