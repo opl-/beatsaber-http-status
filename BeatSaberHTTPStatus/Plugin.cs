@@ -394,29 +394,33 @@ namespace BeatSaberHTTPStatus {
 
 			try {
 				// From https://support.unity3d.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
-				var texture = (await level.GetCoverImageAsync(CancellationToken.None)).texture;
+				// Modified to correctly handle texture atlases. Fixes #82.
 				var active = RenderTexture.active;
-				var temporary = RenderTexture.GetTemporary(
-					texture.width,
-					texture.height,
-					0,
-					RenderTextureFormat.Default,
-					RenderTextureReadWrite.Linear
-				);
+
+				var sprite = await level.GetCoverImageAsync(CancellationToken.None);
+				var texture = sprite.texture;
+				var temporary = RenderTexture.GetTemporary(texture.width, texture.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
 
 				Graphics.Blit(texture, temporary);
 				RenderTexture.active = temporary;
 
-				var cover = new Texture2D(texture.width, texture.height);
-				cover.ReadPixels(new Rect(0, 0, temporary.width, temporary.height), 0, 0);
+				var spriteRect = sprite.rect;
+				var uv = sprite.uv[0];
+
+				var cover = new Texture2D((int) spriteRect.width, (int) spriteRect.height);
+				// Unity sucks. The coordinates of the sprite on its texture atlas are only accessible through the Sprite.uv property since rect always returns `x=0,y=0`, so we need to convert them back into texture space.
+				cover.ReadPixels(new Rect(
+					uv.x * texture.width,
+					texture.height - uv.y * texture.height,
+					spriteRect.width,
+					spriteRect.height
+				), 0, 0);
 				cover.Apply();
 
 				RenderTexture.active = active;
 				RenderTexture.ReleaseTemporary(temporary);
 
-				gameStatus.songCover = System.Convert.ToBase64String(
-					ImageConversion.EncodeToPNG(cover)
-				);
+				gameStatus.songCover = System.Convert.ToBase64String(ImageConversion.EncodeToPNG(cover));
 			} catch {
 				gameStatus.songCover = null;
 			}
