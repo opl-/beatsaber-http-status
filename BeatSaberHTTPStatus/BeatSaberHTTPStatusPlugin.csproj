@@ -12,6 +12,7 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <LangVersion>8.0</LangVersion>
     <Version>1.20.0</Version>
     <BeatSaberVersion>1.19.0</BeatSaberVersion>
     <GameDirPath>..\libs\beatsaber\</GameDirPath>

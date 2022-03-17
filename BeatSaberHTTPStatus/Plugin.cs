@@ -8,6 +8,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using BS_Utils.Gameplay;
 using IPA;
+using BSD2 = BeatmapSaveDataVersion2_6_0AndEarlier.BeatmapSaveData;
+using BSD3 = BeatmapSaveDataVersion3.BeatmapSaveData;
 using IPALogger = IPA.Logging.Logger;
 
 // Interesting props and methods:
@@ -20,7 +22,7 @@ using IPALogger = IPA.Logging.Logger;
 
 namespace BeatSaberHTTPStatus {
 	[Plugin(RuntimeOptions.SingleStartInit)]
-	internal class Plugin : ICutScoreBufferDidFinishEvent {
+	internal class Plugin : ICutScoreBufferDidFinishReceiver {
 		public static Plugin instance {get; private set;}
 
 		private StatusManager statusManager = new StatusManager();
@@ -31,6 +33,7 @@ namespace BeatSaberHTTPStatus {
 		private GameplayCoreSceneSetupData gameplayCoreSceneSetupData;
 		private PauseController pauseController;
 		private ScoreController scoreController;
+		private ComboController comboController;
 		private BeatmapObjectManager beatmapObjectManager;
 		private MultiplayerSessionManager multiplayerSessionManager;
 		private MultiplayerController multiplayerController;
@@ -40,12 +43,11 @@ namespace BeatSaberHTTPStatus {
 		private GameplayModifiers gameplayModifiers;
 		private List<GameplayModifierParamsSO> gameplayModiferParamsList;
 		private AudioTimeSyncController audioTimeSyncController;
-		private BeatmapObjectCallbackController beatmapObjectCallbackController;
 		private PlayerHeadAndObstacleInteraction playerHeadAndObstacleInteraction;
 		private GameSongController gameSongController;
 		private GameEnergyCounter gameEnergyCounter;
 		private Dictionary<NoteData, NoteController> noteControllerMapping = new Dictionary<NoteData, NoteController>();
-		private Dictionary<CutScoreBuffer, NoteFullyCutData> noteCutMapping = new Dictionary<CutScoreBuffer, NoteFullyCutData>();
+		private Dictionary<IReadonlyCutScoreBuffer, NoteFullyCutData> noteCutMapping = new Dictionary<IReadonlyCutScoreBuffer, NoteFullyCutData>();
 		/// <summary>
 		/// Beat Saber 1.12.1 removes NoteData.id, forcing us to generate our own note IDs to allow users to easily link events about the same note.
 		/// Before 1.12.1 the noteID matched the note order in the beatmap file, but this is impossible to replicate now without hooking into the level loading code.
@@ -62,8 +64,6 @@ namespace BeatSaberHTTPStatus {
 		private FieldInfo scoreControllerHeadAndObstacleInteractionField = typeof(ScoreController).GetField("_playerHeadAndObstacleInteraction", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 		/// protected readonly BeatmapObjectManager _beatmapObjectManager
 		private FieldInfo scoreControllerBeatmapObjectManagerField = typeof(ScoreController).GetField("_beatmapObjectManager", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-		/// protected readonly LazyCopyHashSet<ISaberSwingRatingCounterDidFinishReceiver> SaberSwingRatingCounter._didFinishReceivers = new LazyCopyHashSet<ISaberSwingRatingCounterDidFinishReceiver>() // contains the desired CutScoreBuffer
-		private FieldInfo saberSwingRatingCounterDidFinishReceiversField = typeof(SaberSwingRatingCounter).GetField("_didFinishReceivers", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
 		public static readonly string PluginVersion = "$SEMVER_VERSION$"; // Populated by MSBuild
 		public static readonly string GameVersion = "$BS_VERSION$"; // Populated by MSBuild
@@ -118,7 +118,7 @@ namespace BeatSaberHTTPStatus {
 			// Release references for AfterCutScoreBuffers that don't resolve due to player leaving the map before finishing.
 			foreach (var noteCutItem in noteCutMapping) {
 				// CutScoreBuffers are pooled. Remove the event listener just in case it never fires the event.
-				noteCutItem.Key.didFinishEvent.Remove(this);
+				noteCutItem.Key.UnregisterDidFinishReceiver(this);
 			}
 			noteCutMapping.Clear();
 
@@ -132,16 +132,21 @@ namespace BeatSaberHTTPStatus {
 			}
 
 			if (scoreController != null) {
-				scoreController.noteWasCutEvent -= OnNoteWasCut;
-				scoreController.noteWasMissedEvent -= OnNoteWasMissed;
 				scoreController.scoreDidChangeEvent -= OnScoreDidChange;
-				scoreController.comboDidChangeEvent -= OnComboDidChange;
+				scoreController.scoringForNoteStartedEvent -= OnScoringForNoteStarted;
 				scoreController.multiplierDidChangeEvent -= OnMultiplierDidChange;
 				scoreController = null;
 			}
 
+			if (comboController != null) {
+				comboController.comboDidChangeEvent -= OnComboDidChange;
+				comboController = null;
+			}
+
 			if (beatmapObjectManager != null) { 
 				beatmapObjectManager.noteWasSpawnedEvent -= OnNoteWasSpawned;
+				beatmapObjectManager.noteWasCutEvent -= OnNoteWasCut;
+				beatmapObjectManager.noteWasMissedEvent -= OnNoteWasMissed;
 				beatmapObjectManager = null;
 			}
 
@@ -151,11 +156,6 @@ namespace BeatSaberHTTPStatus {
 					levelEndActions.levelFailedEvent -= OnLevelFailed;
 				}
 				gameplayManager = null;
-			}
-
-			if (beatmapObjectCallbackController != null) {
-				beatmapObjectCallbackController.beatmapEventDidTriggerEvent -= OnBeatmapEventDidTrigger;
-				beatmapObjectCallbackController = null;
 			}
 
 			if (gameplayModifiersSO != null) {
@@ -281,9 +281,9 @@ namespace BeatSaberHTTPStatus {
 
 			pauseController = FindFirstOrDefaultOptional<PauseController>();
 			scoreController = FindWithMultiplayerFix<ScoreController>();
+			comboController = FindWithMultiplayerFix<ComboController>();
 			beatmapObjectManager = (BeatmapObjectManager) scoreControllerBeatmapObjectManagerField.GetValue(scoreController);
 			gameplayManager = FindFirstOrDefaultOptional<StandardLevelGameplayManager>() as MonoBehaviour ?? FindFirstOrDefaultOptional<MissionLevelGameplayManager>();
-			beatmapObjectCallbackController = FindWithMultiplayerFix<BeatmapObjectCallbackController>();
 			gameplayModifiersSO = FindFirstOrDefault<GameplayModifiersModelSO>();
 			audioTimeSyncController = FindWithMultiplayerFix<AudioTimeSyncController>();
 			playerHeadAndObstacleInteraction = (PlayerHeadAndObstacleInteraction) scoreControllerHeadAndObstacleInteractionField.GetValue(scoreController);
@@ -308,20 +308,23 @@ namespace BeatSaberHTTPStatus {
 				// public event Action PauseController#didResumeEvent;
 				pauseController.didResumeEvent += OnGameResume;
 			}
-			// public ScoreController#noteWasCutEvent<NoteData, NoteCutInfo, int multiplier> // called after CutScoreBuffer is created
-			scoreController.noteWasCutEvent += OnNoteWasCut;
-			// public ScoreController#noteWasMissedEvent<NoteData, int multiplier>
-			scoreController.noteWasMissedEvent += OnNoteWasMissed;
-			// public ScoreController#scoreDidChangeEvent<int, int> // score
+
+			// public event Action<int scoreBeforeMultiplier, int scoreAfterMultiplier> ScoreController#scoreDidChangeEvent
 			scoreController.scoreDidChangeEvent += OnScoreDidChange;
-			// public ScoreController#comboDidChangeEvent<int> // combo
-			scoreController.comboDidChangeEvent += OnComboDidChange;
-			// public ScoreController#multiplierDidChangeEvent<int, float> // multiplier, progress [0..1]
+			// public event Action<ScoringElement> ScoreController#scoringForNoteStartedEvent
+			scoreController.scoringForNoteStartedEvent += OnScoringForNoteStarted;
+			// public event Action<int multiplier, float progress [0..1]> ScoreController#multiplierDidChangeEvent
 			scoreController.multiplierDidChangeEvent += OnMultiplierDidChange;
 
+			// public event Action<int combo> ComboController#comboDidChangeEvent
+			comboController.comboDidChangeEvent += OnComboDidChange;
+
 			beatmapObjectManager.noteWasSpawnedEvent += OnNoteWasSpawned;
-			// public event Action<BeatmapEventData> BeatmapObjectCallbackController#beatmapEventDidTriggerEvent
-			beatmapObjectCallbackController.beatmapEventDidTriggerEvent += OnBeatmapEventDidTrigger;
+			// public event NoteWasCutDelegate<NoteController, in NoteCutInfo> BeatmapObjectManager#noteWasCutEvent
+			beatmapObjectManager.noteWasCutEvent += OnNoteWasCut;
+			// public event Action<NoteController> BeatmapObjectManager#noteWasMissedEvent
+			beatmapObjectManager.noteWasMissedEvent += OnNoteWasMissed;
+
 			// public event Action GameSongController#songDidFinishEvent;
 			gameSongController.songDidFinishEvent += OnLevelFinished;
 			// public event Action GameEnergyCounter#gameEnergyDidReach0Event;
@@ -333,6 +336,13 @@ namespace BeatSaberHTTPStatus {
 
 			IDifficultyBeatmap diff = gameplayCoreSceneSetupData.difficultyBeatmap;
 			IBeatmapLevel level = diff.level;
+
+			// Load the beatmap data if it hasn't been loaded already
+			if (gameplayCoreSceneSetupData.transformedBeatmapData == null) {
+				await gameplayCoreSceneSetupData.LoadTransformedBeatmapDataAsync();
+			}
+
+			IReadonlyBeatmapData beatmapData = gameplayCoreSceneSetupData.transformedBeatmapData;
 
 			gameStatus.partyMode = Gamemode.IsPartyActive;
 
@@ -346,16 +356,14 @@ namespace BeatSaberHTTPStatus {
 			if (practiceSettings != null) songSpeedMul = practiceSettings.songSpeedMul;
 
 			int beatmapObjectId = 0;
-			var beatmapObjectsData = diff.beatmapData.beatmapObjectsData;
+			var beatmapObjectsData = beatmapData.GetBeatmapDataItems<NoteData>().ToList();
 
 			// Generate NoteData to id mappings for backwards compatiblity with <1.12.1
-			noteToIdMapping = new NoteData[beatmapObjectsData.Count(obj => obj is NoteData)];
+			noteToIdMapping = new NoteData[beatmapObjectsData.Count];
 			lastNoteId = 0;
 
-			foreach (BeatmapObjectData beatmapObjectData in beatmapObjectsData) {
-				if (beatmapObjectData is NoteData noteData) {
-					noteToIdMapping[beatmapObjectId++] = noteData;
-				}
+			foreach (NoteData noteData in beatmapObjectsData) {
+				noteToIdMapping[beatmapObjectId++] = noteData;
 			}
 
 			gameStatus.songName = level.songName;
@@ -376,9 +384,9 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.difficulty = diff.difficulty.Name();
 			gameStatus.difficultyEnum = Enum.GetName(typeof(BeatmapDifficulty), diff.difficulty);
 			gameStatus.characteristic = diff.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName;
-			gameStatus.notesCount = diff.beatmapData.cuttableNotesCount;
-			gameStatus.bombsCount = diff.beatmapData.bombsCount;
-			gameStatus.obstaclesCount = diff.beatmapData.obstaclesCount;
+			gameStatus.notesCount = beatmapData.cuttableNotesCount;
+			gameStatus.bombsCount = beatmapData.bombsCount;
+			gameStatus.obstaclesCount = beatmapData.obstaclesCount;
 			gameStatus.environmentName = level.environmentInfo.sceneInfo.sceneName;
 
 			ColorScheme colorScheme = gameplayCoreSceneSetupData.colorScheme ?? new ColorScheme(gameplayCoreSceneSetupData.environmentInfo.colorScheme);
@@ -514,7 +522,7 @@ namespace BeatSaberHTTPStatus {
 
 			gameStatus.modifierMultiplier = gameplayModifiersSO.GetTotalMultiplier(gameplayModiferParamsList, energy);
 
-			gameStatus.maxScore = gameplayModifiersSO.MaxModifiedScoreForMaxRawScore(ScoreModel.MaxRawScoreForNumberOfNotes(gameplayCoreSceneSetupData.difficultyBeatmap.beatmapData.cuttableNotesCount), gameplayModiferParamsList, gameplayModifiersSO, energy);
+			gameStatus.maxScore = scoreController.immediateMaxPossibleModifiedScore;
 			gameStatus.maxRank = RankModelHelper.MaxRankForGameplayModifiers(gameplayModifiers, gameplayModifiersSO, energy).ToString();
 		}
 
@@ -529,7 +537,7 @@ namespace BeatSaberHTTPStatus {
 			bool currentHeadInObstacle = false;
 
 			if (playerHeadAndObstacleInteraction != null) {
-				currentHeadInObstacle = playerHeadAndObstacleInteraction.intersectingObstacles.Count > 0;
+				currentHeadInObstacle = playerHeadAndObstacleInteraction.playerHeadIsInObstacle;
 			}
 
 			if (!headInObstacle && currentHeadInObstacle) {
@@ -578,27 +586,80 @@ namespace BeatSaberHTTPStatus {
 			statusManager.EmitStatusUpdate(ChangedProperties.NoteCut, "noteSpawned");
 		}
 
-		public void OnNoteWasCut(NoteData noteData, in NoteCutInfo noteCutInfo, int multiplier) {
-			// Event order: combo, multiplier, scoreController.noteWasCut, (LateUpdate) scoreController.scoreDidChange, afterCut, (LateUpdate) scoreController.scoreDidChange
+		public void OnNoteWasCut(NoteController noteController, in NoteCutInfo noteCutInfo) {
+			var noteData = noteCutInfo.noteData;
 
+			if (noteData.scoringType == NoteData.ScoringType.Ignore) {
+				if (noteData.gameplayType == NoteData.GameplayType.Bomb) {
+					// Bombs don't fire any other events: handle the bomb cut immediately
+					HandleCutStart(noteData, noteCutInfo, null);
+				}
+
+				return;
+			} else {
+				if (!noteCutInfo.allIsOK) {
+					// Handle bad cuts here so we don't have to store the noteCutInfo
+					// FIXME: this might result in Combo/ScoreController not getting a chance to process the bad cut, though at least ScoreController handles stuff in LateUpdate anyway, so...
+					HandleCutStart(noteData, noteCutInfo, null);
+				}
+			}
+		}
+
+		public void OnScoringForNoteStarted(ScoringElement scoringElement) {
+			switch (scoringElement) {
+				case GoodCutScoringElement goodCut: HandleGoodCutScoring(goodCut); break;
+				case BadCutScoringElement badCut: HandleBadCutScoring(badCut); break;
+				case MissScoringElement miss: HandleMissScoring(miss); break;
+				default: throw new Exception($"Unknown ScoringElement type: {scoringElement.GetType()}");
+			}
+		}
+
+		public void HandleGoodCutScoring(GoodCutScoringElement goodCut) {
+			statusManager.gameStatus.cutMultiplier = goodCut.multiplier;
+
+			HandleCutStart(goodCut.noteData, goodCut.cutScoreBuffer.noteCutInfo, goodCut.cutScoreBuffer);
+		}
+
+		public void HandleBadCutScoring(BadCutScoringElement badCut) {
+			// NOOP
+		}
+
+		public void HandleMissScoring(MissScoringElement miss) {
+			// NOOP
+		}
+
+		public void HandleCutStart(NoteData noteData, NoteCutInfo noteCutInfo, IReadonlyCutScoreBuffer cutScoreBuffer) {
 			var gameStatus = statusManager.gameStatus;
 
 			SetNoteDataStatus(noteData);
-			SetNoteCutStatus(noteCutInfo, noteData, true);
+			SetNoteCutStatus(noteCutInfo, noteData, cutScoreBuffer, true);
 
-			int beforeCutScore = 0;
-			int afterCutScore = 0;
-			int cutDistanceScore = 0;
+			var fixedCutScore = ScoreModel.GetNoteScoreDefinition(noteData.scoringType).fixedCutScore;
 
-			// public static void ScoreModel.RawScoreWithoutMultiplier(ISaberSwingRatingCounter saberSwingRatingCounter, float cutDistanceToCenter, out int beforeCutRawScore, out int afterCutRawScore, out int cutDistanceRawScore)
-			ScoreModel.RawScoreWithoutMultiplier(noteCutInfo.swingRatingCounter, noteCutInfo.cutDistanceToCenter, out beforeCutScore, out afterCutScore, out cutDistanceScore);
+			if (cutScoreBuffer != null) {
+				int beforeCutScore = cutScoreBuffer.beforeCutScore;
+				int cutDistanceScore = cutScoreBuffer.centerDistanceCutScore;
 
-			gameStatus.initialScore = beforeCutScore + cutDistanceScore;
-			gameStatus.finalScore = -1;
-			gameStatus.cutDistanceScore = cutDistanceScore;
-			gameStatus.cutMultiplier = multiplier;
+				gameStatus.initialScore = beforeCutScore + cutDistanceScore + fixedCutScore;
+				gameStatus.finalScore = -1;
+				gameStatus.cutDistanceScore = cutDistanceScore;
 
-			if (noteData.colorType == ColorType.None) {
+				noteCutMapping.Add(cutScoreBuffer, new NoteFullyCutData(noteData, noteCutInfo));
+				cutScoreBuffer.RegisterDidFinishReceiver(this);
+			} else if (noteData.gameplayType == NoteData.GameplayType.Bomb) {
+				gameStatus.initialScore = -1;
+				gameStatus.finalScore = -1;
+				gameStatus.cutDistanceScore = -1;
+			} else {
+				gameStatus.initialScore = fixedCutScore;
+				gameStatus.finalScore = fixedCutScore;
+				gameStatus.cutDistanceScore = 0;
+			}
+
+			// XXX: do this in good cut handler
+			// gameStatus.cutMultiplier = multiplier;
+
+			if (noteData.gameplayType == NoteData.GameplayType.Bomb) {
 				gameStatus.passedBombs++;
 				gameStatus.hitBombs++;
 
@@ -618,48 +679,32 @@ namespace BeatSaberHTTPStatus {
 					statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteMissed");
 				}
 			}
-
-			// Bombs don't have a SwingRatingCounter
-			if (noteCutInfo.swingRatingCounter != null) {
-				var didFinishReceivers = (LazyCopyHashSet<ISaberSwingRatingCounterDidFinishReceiver>) saberSwingRatingCounterDidFinishReceiversField.GetValue(noteCutInfo.swingRatingCounter);
-				foreach (ISaberSwingRatingCounterDidFinishReceiver receiver in didFinishReceivers.items) {
-					if (receiver is CutScoreBuffer csb) {
-						noteCutMapping.Add(csb, new NoteFullyCutData(noteData, noteCutInfo));
-
-						// public ILazyCopyHashSet<ICutScoreBufferDidFinishEvent> CutScoreBuffer#didFinishEvent
-						csb.didFinishEvent.Add(this);
-						break;
-					}
-				}
-			}
 		}
 
 		public void HandleCutScoreBufferDidFinish(CutScoreBuffer csb) {
-			csb.didFinishEvent.Remove(this);
+			csb.UnregisterDidFinishReceiver(this);
 
 			OnNoteWasFullyCut(csb);
 		}
 
 		public void OnNoteWasFullyCut(CutScoreBuffer csb) {
-			int beforeCutScore;
-			int afterCutScore;
-			int cutDistanceScore;
-			
 			NoteFullyCutData noteFullyCutData = noteCutMapping[csb];
 			noteCutMapping.Remove(csb);
 
 			NoteCutInfo noteCutInfo = noteFullyCutData.noteCutInfo;
 
 			SetNoteDataStatus(noteFullyCutData.noteData);
-			SetNoteCutStatus(noteCutInfo, noteFullyCutData.noteData, false);
+			SetNoteCutStatus(noteCutInfo, noteFullyCutData.noteData, csb, false);
 
-			// public static void ScoreModel.RawScoreWithoutMultiplier(ISaberSwingRatingCounter saberSwingRatingCounter, float cutDistanceToCenter, out int beforeCutRawScore, out int afterCutRawScore, out int cutDistanceRawScore)
-			ScoreModel.RawScoreWithoutMultiplier(noteCutInfo.swingRatingCounter, noteCutInfo.cutDistanceToCenter, out beforeCutScore, out afterCutScore, out cutDistanceScore);
+			int beforeCutScore = csb.beforeCutScore;
+			int afterCutScore = csb.afterCutScore;
+			int cutDistanceScore = csb.centerDistanceCutScore;
 
 			statusManager.gameStatus.initialScore = beforeCutScore + cutDistanceScore;
 			statusManager.gameStatus.finalScore = beforeCutScore + afterCutScore + cutDistanceScore;
 			statusManager.gameStatus.cutDistanceScore = cutDistanceScore;
-			statusManager.gameStatus.cutMultiplier = csb.multiplier;
+			// XXX: do this in good cut handler
+			// statusManager.gameStatus.cutMultiplier = csb.multiplier;
 
 			statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "noteFullyCut");
 
@@ -703,7 +748,7 @@ namespace BeatSaberHTTPStatus {
 		/// <summary>
 		/// Sets note cut related status data. Should be called after SetNoteDataStatus.
 		/// </summary>
-		private void SetNoteCutStatus(NoteCutInfo noteCutInfo, NoteData noteData, bool initialCut = true) {
+		private void SetNoteCutStatus(NoteCutInfo noteCutInfo, NoteData noteData, IReadonlyCutScoreBuffer cutScoreBuffer, bool initialCut = true) {
 			GameStatus gameStatus = statusManager.gameStatus;
 
 			var transform = noteControllerMapping[noteData].noteTransform;
@@ -718,7 +763,7 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.saberDirY = saberDir[1];
 			gameStatus.saberDirZ = saberDir[2];
 			gameStatus.saberType = noteCutInfo.saberType.ToString();
-			gameStatus.swingRating = noteCutInfo.swingRatingCounter == null ? -1 : initialCut ? noteCutInfo.swingRatingCounter.beforeCutRating : noteCutInfo.swingRatingCounter.afterCutRating;
+			gameStatus.swingRating = cutScoreBuffer == null ? -1 : initialCut ? cutScoreBuffer.beforeCutSwingRating : cutScoreBuffer.afterCutSwingRating;
 			gameStatus.timeDeviation = noteCutInfo.timeDeviation;
 			gameStatus.cutDirectionDeviation = noteCutInfo.cutDirDeviation;
 			var cutPoint = transform.InverseTransformPoint(noteCutInfo.cutPoint);
@@ -732,14 +777,17 @@ namespace BeatSaberHTTPStatus {
 			gameStatus.cutDistanceToCenter = noteCutInfo.cutDistanceToCenter;
 		}
 
-		public void OnNoteWasMissed(NoteData noteData, int multiplier) {
+		public void OnNoteWasMissed(NoteController noteController) {
+			// XXX: outdated?
 			// Event order: combo, multiplier, scoreController.noteWasMissed, (LateUpdate) scoreController.scoreDidChange
+
+			var noteData = noteController.noteData;
 
 			statusManager.gameStatus.batteryEnergy = gameEnergyCounter.batteryEnergy;
 
 			SetNoteDataStatus(noteData);
 
-			if (noteData.colorType == ColorType.None) {
+			if (noteData.gameplayType == NoteData.GameplayType.Bomb) {
 				statusManager.gameStatus.passedBombs++;
 
 				statusManager.EmitStatusUpdate(ChangedProperties.PerformanceAndNoteCut, "bombMissed");
@@ -767,17 +815,18 @@ namespace BeatSaberHTTPStatus {
 		public void UpdateCurrentMaxScore() {
 			GameStatus gameStatus = statusManager.gameStatus;
 
-			int currentMaxScoreBeforeMultiplier = ScoreModel.MaxRawScoreForNumberOfNotes(gameStatus.passedNotes);
-			gameStatus.currentMaxScore = gameplayModifiersSO.MaxModifiedScoreForMaxRawScore(currentMaxScoreBeforeMultiplier, gameplayModiferParamsList, gameplayModifiersSO, gameEnergyCounter.energy);
+			// TODO: test
+			// int currentMaxScoreBeforeMultiplier = ScoreModel.MaxRawScoreForNumberOfNotes(gameStatus.passedNotes);
+			gameStatus.currentMaxScore = scoreController.immediateMaxPossibleModifiedScore; // gameplayModifiersSO.MaxModifiedScoreForMaxRawScore(currentMaxScoreBeforeMultiplier, gameplayModiferParamsList, gameplayModifiersSO, gameEnergyCounter.energy);
 
-			RankModel.Rank rank = RankModel.GetRankForScore(gameStatus.rawScore, gameStatus.score, currentMaxScoreBeforeMultiplier, gameStatus.currentMaxScore);
+			RankModel.Rank rank = RankModel.GetRankForScore(gameStatus.rawScore, gameStatus.score, scoreController.immediateMaxPossibleModifiedScore, gameStatus.currentMaxScore);
 			gameStatus.rank = RankModel.GetRankName(rank);
 		}
 
 		public void OnComboDidChange(int combo) {
 			statusManager.gameStatus.combo = combo;
-			// public int ScoreController#maxCombo
-			statusManager.gameStatus.maxCombo = scoreController.maxCombo;
+			// public int ComboController#maxCombo
+			statusManager.gameStatus.maxCombo = comboController.maxCombo;
 		}
 
 		public void OnMultiplierDidChange(int multiplier, float multiplierProgress) {
@@ -794,9 +843,9 @@ namespace BeatSaberHTTPStatus {
 		}
 
 		public void OnMultiplayerLevelFinished(MultiplayerLevelCompletionResults results) {
-			if (results.levelEndState == MultiplayerLevelCompletionResults.MultiplayerLevelEndState.Cleared) {
+			if (results.playerLevelEndReason == MultiplayerLevelCompletionResults.MultiplayerPlayerLevelEndReason.Cleared) {
 				OnLevelFinished();
-			} else if (results.levelEndState == MultiplayerLevelCompletionResults.MultiplayerLevelEndState.Failed) {
+			} else if (results.playerLevelEndReason == MultiplayerLevelCompletionResults.MultiplayerPlayerLevelEndReason.Failed) {
 				OnLevelFailed();
 			}
 		}
@@ -812,19 +861,12 @@ namespace BeatSaberHTTPStatus {
 			}
 		}
 
-		public void OnBeatmapEventDidTrigger(BeatmapEventData beatmapEventData) {
-			statusManager.gameStatus.beatmapEventType = (int) beatmapEventData.type;
-			statusManager.gameStatus.beatmapEventValue = beatmapEventData.value;
-
-			statusManager.EmitStatusUpdate(ChangedProperties.BeatmapEvent, "beatmapEvent");
-		}
-
 		public static long GetCurrentTime() {
 			return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 		}
 
 		public static bool NoteDataEquals(NoteData a, NoteData b, bool noArrows = false) {
-			return a.time == b.time && a.lineIndex == b.lineIndex && a.noteLineLayer == b.noteLineLayer && a.colorType == b.colorType && (noArrows || a.cutDirection == b.cutDirection) && a.duration == b.duration;
+			return a.time == b.time && a.lineIndex == b.lineIndex && a.noteLineLayer == b.noteLineLayer && a.colorType == b.colorType && (noArrows || a.cutDirection == b.cutDirection);
 		}
 
 		public class PluginTickerScript : PersistentSingleton<PluginTickerScript> {
